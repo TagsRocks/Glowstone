@@ -1,0 +1,40 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+}
+
+group 'com.github.glowstone.io.core'
+version '1.0.0'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    maven {
+        name 'Sponge maven repo'
+        url 'http://repo.spongepowered.org/maven'
+    }
+}
+
+dependencies {
+    compile 'org.spongepowered:spongeapi:5.0.0'
+    shadow 'org.eclipse.jetty:jetty-server:9.3.8.v20160314'
+    shadow 'org.eclipse.jetty:jetty-servlet:9.3.8.v20160314'
+    shadow 'com.google.code.gson:gson:2.2.4'
+    shadow 'org.glassfish.jersey.containers:jersey-container-servlet:2.25'
+    shadow 'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
+    shadow 'org.hibernate:hibernate-entitymanager:5.2.6.Final'
+}
+
+configurations {
+    compile.extendsFrom shadow
+}
+
+shadowJar {
+    classifier = null
+    configurations = [project.configurations.shadow]
+}
+
+build.dependsOn shadowJar
