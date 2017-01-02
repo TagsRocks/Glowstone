@@ -1,7 +1,5 @@
 package com.github.glowstone.io.core.http.resources;
 
-import com.github.glowstone.io.core.Glowstone;
-import com.github.glowstone.io.core.objects.PlayerLocationObject;
 import com.google.gson.Gson;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
@@ -29,7 +27,7 @@ public class PlayerResource {
 
         Optional<UserStorageService> optionalService = Sponge.getServiceManager().provide(UserStorageService.class);
         if (!optionalService.isPresent()) {
-            Glowstone.getLogger().error("User storage service unavailable.");
+            // Glowstone.getLogger().error("User storage service unavailable.");
             return "";
         }
 
@@ -55,29 +53,6 @@ public class PlayerResource {
         return json.toJson(user.getProfile());
     }
 
-    @GET
-    @Path(("/{playerId}/location"))
-    public String getPlayerLocation(@PathParam("playerId") String playerId) {
-
-        Gson json = new Gson();
-        User user = getUser(playerId);
-
-        if (user == null) {
-            return json.toJson(String.format("Player '%s' not found", playerId));
-        }
-
-        Optional<Player> optionalPlayer = user.getPlayer();
-        if (!optionalPlayer.isPresent()) {
-            return json.toJson(String.format("%s is offline.", user.getName()));
-        }
-
-        Player player = optionalPlayer.get();
-        Location<World> location = player.getLocation();
-
-        return json.toJson(new PlayerLocationObject(location.getExtent().getName(), location.getBlockX(), location.getBlockY(), location.getBlockZ()));
-
-    }
-
     /**
      * Get the User by last known name or unique id
      *
@@ -101,11 +76,7 @@ public class PlayerResource {
             optionalUser = userStorageService.get(playerId);
         }
 
-        if (!optionalUser.isPresent()) {
-            return null;
-        }
-
-        return optionalUser.get();
+        return optionalUser.orElse(null);
 
     }
 

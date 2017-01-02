@@ -1,6 +1,7 @@
 package com.github.glowstone.io.core.configs;
 
-import com.github.glowstone.io.core.Glowstone;
+import com.github.glowstone.io.core.configs.interfaces.Configuration;
+import com.google.common.base.Preconditions;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -8,130 +9,87 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import java.io.File;
 import java.io.IOException;
 
-abstract public class Config {
+public abstract class Config implements Configuration {
 
-    private File configDir;
-    private File configFile;
-    private ConfigurationLoader<CommentedConfigurationNode> configLoader;
-    private CommentedConfigurationNode config;
+    private static Configuration instance;
+    private final File directory;
+    private final File file;
+    private final ConfigurationLoader<CommentedConfigurationNode> loader;
+    private final CommentedConfigurationNode config;
 
     /**
-     * Get this configs's directory
+     * Config constructor
+     *
+     * @param directory File
+     * @param filename  String
+     * @throws IOException maybe thrown if there was an error loading the file, or creating the file for the first time.
+     */
+    Config(File directory, String filename) throws IOException {
+        Preconditions.checkNotNull(directory);
+        Preconditions.checkNotNull(filename);
+
+        instance = this;
+        this.directory = directory;
+        this.file = new File(this.directory, filename);
+        this.loader = HoconConfigurationLoader.builder().setFile(this.file).build();
+
+        if (!this.file.isFile() && this.file.createNewFile()) {
+            this.config = this.loader.load();
+            this.setDefaults();
+            this.save();
+        } else {
+            this.config = this.loader.load();
+        }
+    }
+
+    /**
+     * Get this Configuration instance
+     *
+     * @return Configuration
+     */
+    public static Configuration getInstance() {
+        return instance;
+    }
+
+    /**
+     * Get the parent directory for this config file
      *
      * @return File
      */
-    public File getConfigDir() {
-        return this.configDir;
+    public File getDirectory() {
+        return this.directory;
     }
 
     /**
-     * Get this configs's file
+     * Get this config's file
      *
      * @return File
      */
-    public File getConfigFile() {
-        return this.configFile;
+    public File getFile() {
+        return this.file;
     }
 
     /**
-     * Set this configs's file
+     * Get the main config node
      *
-     * @param configFile File
-     */
-    public void setConfigFile(File configFile) {
-        this.configFile = configFile;
-    }
-
-    /**
-     * Get the configuration loader
-     *
-     * @return ConfigurationLoader<CommentedConfigurationNode>
-     */
-    public ConfigurationLoader<CommentedConfigurationNode> getConfigLoader() {
-        return this.configLoader;
-    }
-
-    /**
-     * Set the configuration loader
-     *
-     * @param configLoader ConfigurationLoader<CommentedConfigurationNode>
-     */
-    public void setConfigLoader(ConfigurationLoader<CommentedConfigurationNode> configLoader) {
-        this.configLoader = configLoader;
-    }
-
-    /**
-     * Get this configs
-     *
-     * @return CommendedConfigurationNode
+     * @return CommentedConfigurationNode
      */
     public CommentedConfigurationNode get() {
         return this.config;
     }
 
     /**
-     * Set this configs
+     * Save this config
      *
-     * @param config CommentedConfigurationNode
+     * @throws IOException will be thrown if there was an error saving the file
      */
-    public void setConfig(CommentedConfigurationNode config) {
-        this.config = config;
+    public void save() throws IOException {
+        this.loader.save(get());
     }
 
     /**
-     * configs constructor
-     *
-     * @param configDir File
+     * Set default values the first time the config file is generated
      */
-    public Config(File configDir) {
-        this.configDir = configDir;
-    }
-
-    /**
-     * Load configs
-     */
-    public void load() {
-
-        setConfigLoader(HoconConfigurationLoader.builder().setFile(getConfigFile()).build());
-
-        try {
-
-            boolean isNew = false;
-            if (!getConfigFile().isFile()) {
-                if (getConfigFile().createNewFile()) {
-                    isNew = true;
-                }
-            }
-            setConfig(getConfigLoader().load());
-
-            if (isNew) {
-                setDefaults();
-                save();
-            }
-
-        } catch (IOException e) {
-            Glowstone.getLogger().error("There was an error loading the configs: " + e.getMessage());
-        }
-
-    }
-
-    /**
-     * Set default values the first time the configs file is generated
-     */
-    abstract protected void setDefaults();
-
-    /**
-     * Save this configs to disk
-     */
-    public void save() {
-
-        try {
-            getConfigLoader().save(get());
-
-        } catch (IOException e) {
-            Glowstone.getLogger().error("There was an error saving the configs: " + e.getMessage());
-        }
-
-    }
+    protected abstract void setDefaults();
 
 }

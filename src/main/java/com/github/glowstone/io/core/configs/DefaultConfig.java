@@ -1,8 +1,7 @@
 package com.github.glowstone.io.core.configs;
 
-import com.github.glowstone.io.core.Glowstone;
-
 import java.io.File;
+import java.io.IOException;
 
 public class DefaultConfig extends Config {
 
@@ -10,17 +9,17 @@ public class DefaultConfig extends Config {
     public static final String DATABASE_SETTINGS = "Database Settings";
 
     /**
-     * DefaultConfig Constructor
+     * DefaultConfig constructor
      *
-     * @param configDir File
+     * @param directory File
+     * @param filename  String
      */
-    public DefaultConfig(File configDir) {
-        super(configDir);
-        setConfigFile(new File(configDir, Glowstone.NAME + ".conf"));
+    public DefaultConfig(File directory, String filename) throws IOException {
+        super(directory, filename);
     }
 
     @Override
-    protected void setDefaults() {
+    public void setDefaults() {
         get().getNode(API_SETTINGS, "port").setValue(8766);
 
         get().getNode(DATABASE_SETTINGS, "type").setValue("H2").setComment("Accepted Types: H2");
