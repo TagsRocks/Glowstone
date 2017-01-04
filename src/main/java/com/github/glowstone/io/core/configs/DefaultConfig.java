@@ -3,7 +3,7 @@ package com.github.glowstone.io.core.configs;
 import java.io.File;
 import java.io.IOException;
 
-public class DefaultConfig extends Config {
+public class DefaultConfig extends HoconConfig {
 
     public static final String API_SETTINGS = "API Settings";
     public static final String DATABASE_SETTINGS = "Database Settings";

@@ -1,12 +1,11 @@
 package com.github.glowstone.io.core.permissions;
 
+import com.github.glowstone.io.core.permissions.collections.*;
+import com.github.glowstone.io.core.permissions.subjects.DefaultSubject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.spongepowered.api.service.context.ContextCalculator;
-import org.spongepowered.api.service.permission.PermissionDescription;
-import org.spongepowered.api.service.permission.PermissionService;
-import org.spongepowered.api.service.permission.Subject;
-import org.spongepowered.api.service.permission.SubjectCollection;
+import org.spongepowered.api.service.permission.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,43 +14,41 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class GlowstonePermissionService implements PermissionService {
 
     public static final String DEFAULT_GROUP = "default";
-    public static GlowstonePermissionService instance = null;
+    public static final String SUBJECT_PRIVILEGED = "privileged";
+    public static final GlowstonePermissionService instance = new GlowstonePermissionService();
 
     private final ConcurrentHashMap<String, SubjectCollection> collections = new ConcurrentHashMap<>();
     private final CopyOnWriteArrayList<ContextCalculator> contextCalculators = new CopyOnWriteArrayList<>();
 
     /**
      * GlowstonePermissionsService constructor
-     *
-     * @param users  SubjectCollection
-     * @param groups SubjectCollection
      */
-    private GlowstonePermissionService(SubjectCollection users, SubjectCollection groups) {
-        Preconditions.checkNotNull(users);
-        Preconditions.checkNotNull(groups);
-
-        instance = this;
-        this.collections.put(PermissionService.SUBJECTS_USER, users);
-        this.collections.put(PermissionService.SUBJECTS_GROUP, groups);
+    private GlowstonePermissionService() {
+        this.collections.put(UserSubjectCollection.instance.getIdentifier(), UserSubjectCollection.instance);
+        this.collections.put(GroupSubjectCollection.instance.getIdentifier(), GroupSubjectCollection.instance);
+        this.collections.put(PermissionService.SUBJECTS_SYSTEM, PrivilegedSubjectCollection.instance);
+        this.collections.put(PermissionService.SUBJECTS_COMMAND_BLOCK, PrivilegedSubjectCollection.instance);
+        this.collections.put(PermissionService.SUBJECTS_ROLE_TEMPLATE, PrivilegedSubjectCollection.instance);
     }
 
     @Override
     public SubjectCollection getUserSubjects() {
-        return this.collections.get(PermissionService.SUBJECTS_USER);
+        return UserSubjectCollection.instance;
     }
 
     @Override
     public SubjectCollection getGroupSubjects() {
-        return this.collections.get(PermissionService.SUBJECTS_GROUP);
+        return GroupSubjectCollection.instance;
     }
 
     @Override
     public Subject getDefaults() {
-        if (this.getGroupSubjects().hasRegistered(DEFAULT_GROUP)) {
-            return this.getGroupSubjects().get(DEFAULT_GROUP);
-        }
+        return DefaultSubject.instance;
+    }
 
-        return null;
+    // Sponge API 4
+    public SubjectData getDefaultData() {
+        return DefaultSubject.instance.getSubjectData();
     }
 
     @Override

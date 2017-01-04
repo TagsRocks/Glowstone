@@ -20,12 +20,13 @@ repositories {
 
 dependencies {
     compile 'org.spongepowered:spongeapi:5.0.0'
+    shadow 'com.google.code.gson:gson:2.2.4'
+    shadow 'com.zaxxer:HikariCP:2.5.1'
     shadow 'org.eclipse.jetty:jetty-server:9.3.8.v20160314'
     shadow 'org.eclipse.jetty:jetty-servlet:9.3.8.v20160314'
-    shadow 'com.google.code.gson:gson:2.2.4'
     shadow 'org.glassfish.jersey.containers:jersey-container-servlet:2.25'
-    shadow 'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
     shadow 'org.hibernate:hibernate-entitymanager:5.2.6.Final'
+    shadow 'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
 }
 
 configurations {

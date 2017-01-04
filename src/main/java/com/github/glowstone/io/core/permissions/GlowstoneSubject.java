@@ -12,26 +12,30 @@ import java.util.*;
 
 public class GlowstoneSubject implements Subject {
 
-    protected final String identifier;
-    protected final String name;
-    protected final SubjectCollection collection;
-    protected final SubjectData subjectData;
-    protected final SubjectData transientSubjectData;
-    protected final Set<Context> activeContexts;
+    private final String identifier;
+    private final String name;
+    private final String type;
+    private final SubjectCollection collection;
+    private final SubjectData subjectData;
+    private final SubjectData transientSubjectData;
+    private final Set<Context> activeContexts;
 
     /**
      * GlowstoneSubject constructor
      *
      * @param identifier String
+     * @param name       String
+     * @param type       String
      * @param collection SubjectCollection
      */
-    protected GlowstoneSubject(String identifier, String name, SubjectCollection collection) {
+    public GlowstoneSubject(String identifier, String name, String type, SubjectCollection collection) {
         Preconditions.checkNotNull(identifier);
         Preconditions.checkNotNull(name);
-        Preconditions.checkNotNull(collection);
+        Preconditions.checkNotNull(type);
 
         this.identifier = identifier;
         this.name = name;
+        this.type = type;
         this.collection = collection;
         this.subjectData = new GlowstoneSubjectData(this);
         this.transientSubjectData = new GlowstoneSubjectData(this);
@@ -43,8 +47,18 @@ public class GlowstoneSubject implements Subject {
         return this.identifier;
     }
 
+    /**
+     * @return String
+     */
     public String getName() {
         return this.name;
+    }
+
+    /**
+     * @return String
+     */
+    public String getType() {
+        return this.type;
     }
 
     @Override

@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Set;
 
 @Entity
 @org.hibernate.annotations.Entity(dynamicUpdate = true)
@@ -18,7 +17,7 @@ public class PermissionEntity implements Serializable {
     @Id
     @Column(name = "permission_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int permissionId;
+    private long permissionId;
 
     @Column(name = "permission", nullable = false)
     private String permission;
@@ -26,8 +25,11 @@ public class PermissionEntity implements Serializable {
     @Column(name = "value", nullable = false)
     private boolean value;
 
-    @ManyToMany(mappedBy = "permissions")
-    private Set<PermissionMapEntity> permissionMappings;
+    /**
+     * PermissionEntity default constructor
+     */
+    public PermissionEntity() {
+    }
 
     /**
      * PermissionEntity constructor
@@ -41,6 +43,13 @@ public class PermissionEntity implements Serializable {
 
         this.permission = permission;
         this.value = value;
+    }
+
+    /**
+     * @return long
+     */
+    public long getPermissionId() {
+        return this.permissionId;
     }
 
     /**

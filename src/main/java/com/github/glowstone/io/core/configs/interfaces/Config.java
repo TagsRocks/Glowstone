@@ -5,7 +5,7 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import java.io.File;
 import java.io.IOException;
 
-public interface Configuration {
+public interface Config {
 
     /**
      * Get the parent directory for this config file

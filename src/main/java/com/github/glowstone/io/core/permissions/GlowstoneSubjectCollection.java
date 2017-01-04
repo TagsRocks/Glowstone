@@ -1,5 +1,6 @@
 package com.github.glowstone.io.core.permissions;
 
+import com.github.glowstone.io.core.permissions.subjects.DefaultSubject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.spongepowered.api.service.context.Context;
@@ -25,6 +26,15 @@ public class GlowstoneSubjectCollection implements SubjectCollection {
         Preconditions.checkNotNull(identifier);
 
         this.identifier = identifier;
+    }
+
+    /**
+     * Get all subjects
+     *
+     * @return Map of subjects in this collection
+     */
+    public Map<String, Subject> getSubjects() {
+        return this.subjects;
     }
 
     @Override
@@ -79,6 +89,6 @@ public class GlowstoneSubjectCollection implements SubjectCollection {
 
     @Override
     public Subject getDefaults() {
-        return GlowstonePermissionService.instance.getDefaults();
+        return DefaultSubject.instance;
     }
 }

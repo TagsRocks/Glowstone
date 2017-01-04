@@ -1,11 +1,8 @@
 package com.github.glowstone.io.core.entities;
 
-import com.google.common.base.Preconditions;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Parameter;
-
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -18,58 +15,45 @@ public class SubjectDataEntity implements Serializable {
     private static final long serialVersionUID = -3317877691585905050L;
 
     @Id
-    @Column(name = "subject_id", unique = true, nullable = false)
-    @GeneratedValue(generator = "generator")
-    @GenericGenerator(name = "generator", strategy = "foreign",
-            parameters = @Parameter(name = "property", value = "subject")
-    )
-    private int subjectId;
+    @Column(name = "subject_data_id", unique = true, nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long subjectDataId;
 
-    @OneToOne
-    @PrimaryKeyJoinColumn
-    private SubjectEntity subject;
-
-    @ManyToMany(cascade = {CascadeType.ALL})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "subject_data_permissions",
-            joinColumns = {@JoinColumn(name = "subject_id")},
+            joinColumns = {@JoinColumn(name = "subject_data_id")},
             inverseJoinColumns = {@JoinColumn(name = "permission_map_id")}
     )
     private Set<PermissionMapEntity> permissions;
 
-    @ManyToMany(cascade = {CascadeType.ALL})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "subject_data_subjects",
-            joinColumns = {@JoinColumn(name = "subject_id")},
+            joinColumns = {@JoinColumn(name = "subject_data_id")},
             inverseJoinColumns = {@JoinColumn(name = "subject_map_id")}
     )
     private Set<SubjectMapEntity> parents;
 
-    @ManyToMany(cascade = {CascadeType.ALL})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "subject_data_options",
-            joinColumns = {@JoinColumn(name = "subject_id")},
+            joinColumns = {@JoinColumn(name = "subject_data_id")},
             inverseJoinColumns = {@JoinColumn(name = "option_map_id")}
     )
     private Set<OptionMapEntity> options;
 
     /**
-     * SubjectDataEntity constructor
+     * SubjectDataEntity default constructor
      */
     public SubjectDataEntity() {
+        this.permissions = new HashSet<>();
+        this.parents = new HashSet<>();
+        this.options = new HashSet<>();
     }
 
     /**
-     * @return SubjectEntity
+     * @return long
      */
-    public SubjectEntity getSubject() {
-        return this.subject;
-    }
-
-    /**
-     * @param subject SubjectEntity
-     */
-    public void setSubject(SubjectEntity subject) {
-        Preconditions.checkNotNull(subject);
-
-        this.subject = subject;
+    public long getSubjectDataId() {
+        return this.subjectDataId;
     }
 
     /**

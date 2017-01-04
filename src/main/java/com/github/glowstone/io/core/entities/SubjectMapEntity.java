@@ -2,6 +2,7 @@ package com.github.glowstone.io.core.entities;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -16,29 +17,35 @@ public class SubjectMapEntity implements Serializable {
     @Id
     @Column(name = "subject_map_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int subjectMapId;
+    private long subjectMapId;
 
-    @ManyToMany(cascade = {CascadeType.ALL})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "subject_map_context",
             joinColumns = {@JoinColumn(name = "subject_map_id")},
             inverseJoinColumns = {@JoinColumn(name = "context_id")}
     )
     private Set<ContextEntity> contexts;
 
-    @ManyToMany(cascade = {CascadeType.ALL})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "subject_map_subject",
             joinColumns = {@JoinColumn(name = "subject_map_id")},
             inverseJoinColumns = {@JoinColumn(name = "subject_id")}
     )
     private Set<SubjectEntity> subjects;
 
-    @ManyToMany(mappedBy = "parents")
-    private Set<SubjectDataEntity> subjectData;
-
     /**
-     * SubjectMapEntity constructor
+     * SubjectMapEntity default constructor
      */
     public SubjectMapEntity() {
+        this.contexts = new HashSet<>();
+        this.subjects = new HashSet<>();
+    }
+
+    /**
+     * @return long
+     */
+    public long getSubjectMapId() {
+        return this.subjectMapId;
     }
 
     /**

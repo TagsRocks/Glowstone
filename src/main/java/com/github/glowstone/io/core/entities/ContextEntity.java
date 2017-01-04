@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Set;
 
 @Entity
 @org.hibernate.annotations.Entity(dynamicUpdate = true)
@@ -18,7 +17,7 @@ public class ContextEntity implements Serializable {
     @Id
     @Column(name = "context_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int contextId;
+    private long contextId;
 
     @Column(name = "type", nullable = false)
     private String type;
@@ -26,14 +25,11 @@ public class ContextEntity implements Serializable {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @ManyToMany(mappedBy = "contexts")
-    private Set<PermissionMapEntity> permissionMappings;
-
-    @ManyToMany(mappedBy = "contexts")
-    private Set<SubjectMapEntity> subjectMappings;
-
-    @ManyToMany(mappedBy = "contexts")
-    private Set<OptionMapEntity> optionMappings;
+    /**
+     * ContextEntity default constructor
+     */
+    public ContextEntity() {
+    }
 
     /**
      * ContextEntity constructor
@@ -47,6 +43,13 @@ public class ContextEntity implements Serializable {
 
         this.type = type;
         this.name = name;
+    }
+
+    /**
+     * @return long
+     */
+    public long getContextId() {
+        return this.contextId;
     }
 
     /**

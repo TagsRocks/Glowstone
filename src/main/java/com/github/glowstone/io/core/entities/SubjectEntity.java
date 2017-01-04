@@ -1,11 +1,18 @@
 package com.github.glowstone.io.core.entities;
 
 import com.google.common.base.Preconditions;
+import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.service.permission.PermissionService;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Set;
 
+@NamedQueries({
+        @NamedQuery(name = "getSubjectByIdentifier", query = "from SubjectEntity s where s.identifier = :identifier"),
+        @NamedQuery(name = "getSubjectsByType", query = "from SubjectEntity s where s.type = :type"),
+        @NamedQuery(name = "getSubjectByIdentifierAndType", query = "from SubjectEntity s where s.identifier = :identifier and s.type = :type"),
+        @NamedQuery(name = "getDefaultGroup", query = "from SubjectEntity s where s.identifier like :search")
+})
 @Entity
 @org.hibernate.annotations.Entity(dynamicUpdate = true)
 @Table(name = "subjects", uniqueConstraints = {
@@ -18,7 +25,7 @@ public class SubjectEntity implements Serializable {
     @Id
     @Column(name = "subject_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int subjectId;
+    private long subjectId;
 
     @Column(name = "type", nullable = false)
     private String type;
@@ -29,11 +36,15 @@ public class SubjectEntity implements Serializable {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @OneToOne(mappedBy = "subject", cascade = {CascadeType.ALL})
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "subject_data_id")
     private SubjectDataEntity subjectData;
 
-    @ManyToMany(mappedBy = "subjects")
-    private Set<SubjectMapEntity> subjectMappings;
+    /**
+     * SubjectEntity default constructor
+     */
+    public SubjectEntity() {
+    }
 
     /**
      * SubjectEntity constructor
@@ -42,14 +53,34 @@ public class SubjectEntity implements Serializable {
      * @param identifier String
      * @param name       String
      */
-    public SubjectEntity(String type, String identifier, String name) {
-        Preconditions.checkNotNull(type);
+    public SubjectEntity(String identifier, String name, String type) {
         Preconditions.checkNotNull(identifier);
         Preconditions.checkNotNull(name);
+        Preconditions.checkNotNull(type);
 
-        this.type = type;
         this.identifier = identifier;
         this.name = name;
+        this.type = type;
+    }
+
+    /**
+     * SubjectEntity constructor
+     *
+     * @param user User
+     */
+    public SubjectEntity(User user) {
+        Preconditions.checkNotNull(user);
+
+        this.identifier = user.getIdentifier();
+        this.name = user.getName();
+        this.type = PermissionService.SUBJECTS_USER;
+    }
+
+    /**
+     * @return long
+     */
+    public long getSubjectId() {
+        return this.subjectId;
     }
 
     /**

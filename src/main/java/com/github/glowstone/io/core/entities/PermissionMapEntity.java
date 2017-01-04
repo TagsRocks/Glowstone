@@ -2,6 +2,7 @@ package com.github.glowstone.io.core.entities;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -16,29 +17,35 @@ public class PermissionMapEntity implements Serializable {
     @Id
     @Column(name = "permission_map_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int permissionMapId;
+    private long permissionMapId;
 
-    @ManyToMany(cascade = {CascadeType.ALL})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "permission_map_context",
             joinColumns = {@JoinColumn(name = "permission_map_id")},
             inverseJoinColumns = {@JoinColumn(name = "context_id")}
     )
     private Set<ContextEntity> contexts;
 
-    @ManyToMany(cascade = {CascadeType.ALL})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "permission_map_permission",
             joinColumns = {@JoinColumn(name = "permission_map_id")},
             inverseJoinColumns = {@JoinColumn(name = "permission_id")}
     )
     private Set<PermissionEntity> permissions;
 
-    @ManyToMany(mappedBy = "permissions")
-    private Set<SubjectDataEntity> subjectData;
-
     /**
-     * PermissionMapEntity constructor
+     * PermissionMapEntity default constructor
      */
     public PermissionMapEntity() {
+        this.contexts = new HashSet<>();
+        this.permissions = new HashSet<>();
+    }
+
+    /**
+     * @return long
+     */
+    public long getPermissionMapId() {
+        return this.permissionMapId;
     }
 
     /**

@@ -2,6 +2,7 @@ package com.github.glowstone.io.core.entities;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -16,29 +17,35 @@ public class OptionMapEntity implements Serializable {
     @Id
     @Column(name = "option_map_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int optionMapId;
+    private long optionMapId;
 
-    @ManyToMany(cascade = {CascadeType.ALL})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "option_map_context",
             joinColumns = {@JoinColumn(name = "option_map_id")},
             inverseJoinColumns = {@JoinColumn(name = "context_id")}
     )
     private Set<ContextEntity> contexts;
 
-    @ManyToMany(cascade = {CascadeType.ALL})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "option_map_option",
             joinColumns = {@JoinColumn(name = "option_map_id")},
             inverseJoinColumns = {@JoinColumn(name = "option_id")}
     )
     private Set<OptionEntity> options;
 
-    @ManyToMany(mappedBy = "options")
-    private Set<SubjectDataEntity> subjectData;
-
     /**
-     * OptionMapEntity constructor
+     * OptionMapEntity default constructor
      */
     public OptionMapEntity() {
+        this.contexts = new HashSet<>();
+        this.options = new HashSet<>();
+    }
+
+    /**
+     * @return long
+     */
+    public long getOptionMapId() {
+        return this.optionMapId;
     }
 
     /**

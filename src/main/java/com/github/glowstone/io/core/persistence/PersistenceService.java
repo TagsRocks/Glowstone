@@ -1,14 +1,14 @@
 package com.github.glowstone.io.core.persistence;
 
 import com.github.glowstone.io.core.configs.DefaultConfig;
-import com.github.glowstone.io.core.configs.interfaces.Configuration;
+import com.github.glowstone.io.core.configs.interfaces.Config;
+import com.github.glowstone.io.core.entities.SubjectEntity;
 import com.google.common.base.Preconditions;
+import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -16,23 +16,23 @@ import java.util.Properties;
 public class PersistenceService {
 
     private static PersistenceService instance;
-    private final Configuration config;
-    private final String persistenceUnitName;
+    private final Config config;
+    private final Configuration configuration;
 
-    private EntityManager entityManager;
+    private SessionFactory sessionFactory;
 
     /**
      * PersistenceService constructor
      *
-     * @param config              Configuration
-     * @param persistenceUnitName String
+     * @param config Config
      */
-    public PersistenceService(Configuration config, String persistenceUnitName) {
+    public PersistenceService(Config config, Configuration configuration) {
         Preconditions.checkNotNull(config);
+        Preconditions.checkNotNull(configuration);
 
         instance = this;
         this.config = config;
-        this.persistenceUnitName = persistenceUnitName;
+        this.configuration = configuration;
         this.initialize();
     }
 
@@ -44,10 +44,10 @@ public class PersistenceService {
     }
 
     /**
-     * @return EntityManager
+     * @return SessionFactory
      */
-    public EntityManager getEntityManager() {
-        return this.entityManager;
+    public SessionFactory getSessionFactory() {
+        return this.sessionFactory;
     }
 
     /**
@@ -85,14 +85,10 @@ public class PersistenceService {
             e.printStackTrace();
         }
 
-        org.hibernate.cfg.Configuration configuration = new org.hibernate.cfg.Configuration();
-        configuration.addProperties(properties);
+        this.configuration.addProperties(properties);
 
         ServiceRegistry registry = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build();
-        configuration.buildSessionFactory(registry);
-
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory(this.persistenceUnitName, properties);
-        entityManager = entityManagerFactory.createEntityManager();
+        this.sessionFactory = configuration.buildSessionFactory(registry);
     }
 
 }

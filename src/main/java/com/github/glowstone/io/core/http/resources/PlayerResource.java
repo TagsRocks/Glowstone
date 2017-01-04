@@ -27,7 +27,6 @@ public class PlayerResource {
 
         Optional<UserStorageService> optionalService = Sponge.getServiceManager().provide(UserStorageService.class);
         if (!optionalService.isPresent()) {
-            // Glowstone.getLogger().error("User storage service unavailable.");
             return "";
         }
 

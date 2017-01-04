@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Set;
 
 @Entity
 @org.hibernate.annotations.Entity(dynamicUpdate = true)
@@ -18,7 +17,7 @@ public class OptionEntity implements Serializable {
     @Id
     @Column(name = "option_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int optionId;
+    private long optionId;
 
     @Column(name = "key", nullable = false)
     private String key;
@@ -26,11 +25,14 @@ public class OptionEntity implements Serializable {
     @Column(name = "value", nullable = false)
     private String value;
 
-    @ManyToMany(mappedBy = "options")
-    private Set<OptionMapEntity> optionMappings;
+    /**
+     * OptionEntity default constructor
+     */
+    public OptionEntity() {
+    }
 
     /**
-     * ContextEntity constructor
+     * OptionEntity constructor
      *
      * @param key   String
      * @param value String
@@ -41,6 +43,13 @@ public class OptionEntity implements Serializable {
 
         this.key = key;
         this.value = value;
+    }
+
+    /**
+     * @return long
+     */
+    public long getOptionId() {
+        return this.optionId;
     }
 
     /**

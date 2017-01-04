@@ -1,6 +1,6 @@
 package com.github.glowstone.io.core.configs;
 
-import com.github.glowstone.io.core.configs.interfaces.Configuration;
+import com.github.glowstone.io.core.configs.interfaces.Config;
 import com.google.common.base.Preconditions;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -9,22 +9,22 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import java.io.File;
 import java.io.IOException;
 
-public abstract class Config implements Configuration {
+public abstract class HoconConfig implements Config {
 
-    private static Configuration instance;
+    private static Config instance;
     private final File directory;
     private final File file;
     private final ConfigurationLoader<CommentedConfigurationNode> loader;
     private final CommentedConfigurationNode config;
 
     /**
-     * Config constructor
+     * HoconConfig constructor
      *
      * @param directory File
      * @param filename  String
      * @throws IOException maybe thrown if there was an error loading the file, or creating the file for the first time.
      */
-    Config(File directory, String filename) throws IOException {
+    HoconConfig(File directory, String filename) throws IOException {
         Preconditions.checkNotNull(directory);
         Preconditions.checkNotNull(filename);
 
@@ -43,11 +43,11 @@ public abstract class Config implements Configuration {
     }
 
     /**
-     * Get this Configuration instance
+     * Get this Config instance
      *
-     * @return Configuration
+     * @return Config
      */
-    public static Configuration getInstance() {
+    public static Config getInstance() {
         return instance;
     }
 

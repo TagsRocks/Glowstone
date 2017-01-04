@@ -1,23 +1,30 @@
 package com.github.glowstone.io.core;
 
 import com.github.glowstone.io.core.configs.DefaultConfig;
-import com.github.glowstone.io.core.configs.interfaces.Configuration;
+import com.github.glowstone.io.core.configs.interfaces.Config;
+import com.github.glowstone.io.core.entities.*;
 import com.github.glowstone.io.core.http.ApiService;
 import com.github.glowstone.io.core.http.resources.PlayerResource;
+import com.github.glowstone.io.core.http.resources.SubjectResource;
 import com.github.glowstone.io.core.http.resources.WorldResource;
+import com.github.glowstone.io.core.permissions.GlowstonePermissionService;
 import com.github.glowstone.io.core.persistence.PersistenceService;
+import com.github.glowstone.io.core.persistence.SubjectEntityStore;
 import com.google.inject.Inject;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.api.Game;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
-import org.spongepowered.api.event.game.state.GameStoppingEvent;
+import org.spongepowered.api.event.game.state.GameStoppedServerEvent;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.service.permission.PermissionService;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,9 +38,10 @@ public class Glowstone {
     public static final String DESCRIPTION = "A Minecraft apiService plugin that runs on top of Sponge for Glowstone.io integration";
 
     private static Glowstone instance;
-    private Configuration config;
+    private Config config;
     private ApiService apiService;
     private PersistenceService persistenceService;
+    private SubjectEntityStore subjectEntityStore;
 
     @Inject
     private Game game;
@@ -64,7 +72,7 @@ public class Glowstone {
     }
 
     @Listener
-    public void onPreInit(GamePreInitializationEvent event) {
+    public void onGamePreInitializationEvent(GamePreInitializationEvent event) {
 
         instance = this;
         this.logger = LoggerFactory.getLogger(Glowstone.NAME);
@@ -85,19 +93,22 @@ public class Glowstone {
 
         // Setup database
         this.setupDatabase();
+
+        // Setup permission service
+        this.setupPermissionService();
     }
 
     @Listener
-    public void onGameInit(GameInitializationEvent event) {
+    public void onGameInitializationEvent(GameInitializationEvent event) {
         this.setupApiService();
     }
 
     @Listener
-    public void onGameReload(GameReloadEvent event) {
+    public void onGameReloadEvent(GameReloadEvent event) {
 
         // Close db sessions
-        if (this.persistenceService != null) {
-            this.persistenceService.getEntityManager().close();
+        if (this.persistenceService != null && this.persistenceService.getSessionFactory().isOpen()) {
+            this.persistenceService.getSessionFactory().close();
         }
 
         // Reload configs
@@ -114,10 +125,11 @@ public class Glowstone {
     }
 
     @Listener
-    public void onGameStop(GameStoppingEvent event) {
+    public void onGameStoppedServerEvent(GameStoppedServerEvent event) {
+        // TODO: save collections and default subject
 
-        if (this.persistenceService != null) {
-            this.persistenceService.getEntityManager().close();
+        if (this.persistenceService != null && this.persistenceService.getSessionFactory().isOpen()) {
+            this.persistenceService.getSessionFactory().close();
         }
 
         if (this.apiService != null) {
@@ -140,17 +152,39 @@ public class Glowstone {
      * Setup the database
      */
     private void setupDatabase() {
-        this.persistenceService = new PersistenceService(this.config, Glowstone.ID);
+        Configuration configuration = new Configuration();
+        configuration.addAnnotatedClass(ContextEntity.class);
+        configuration.addAnnotatedClass(OptionEntity.class);
+        configuration.addAnnotatedClass(OptionMapEntity.class);
+        configuration.addAnnotatedClass(PermissionEntity.class);
+        configuration.addAnnotatedClass(PermissionMapEntity.class);
+        configuration.addAnnotatedClass(SubjectDataEntity.class);
+        configuration.addAnnotatedClass(SubjectEntity.class);
+        configuration.addAnnotatedClass(SubjectMapEntity.class);
+
+        this.persistenceService = new PersistenceService(this.config, configuration);
+        this.subjectEntityStore = new SubjectEntityStore(this.persistenceService.getSessionFactory());
+    }
+
+    /**
+     * Setup the permission service
+     */
+    private void setupPermissionService() {
+        // TODO: load collections
+
+        Sponge.getServiceManager().setProvider(this, PermissionService.class, GlowstonePermissionService.instance);
     }
 
     /**
      * Setup the api service
      */
     private void setupApiService() {
+        int port = this.config.get().getNode(DefaultConfig.API_SETTINGS, "port").getInt(8766);
         ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(new PlayerResource());
+        resourceConfig.register(new SubjectResource(this.subjectEntityStore));
         resourceConfig.register(new WorldResource());
-        int port = this.config.get().getNode(DefaultConfig.API_SETTINGS, "port").getInt(8766);
+
         this.apiService = new ApiService(resourceConfig, port);
     }
 
