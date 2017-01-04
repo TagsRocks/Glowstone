@@ -76,4 +76,5 @@ public class SubjectDataEntity implements Serializable {
     public Set<OptionMapEntity> getAllOptions() {
         return this.options;
     }
+
 }

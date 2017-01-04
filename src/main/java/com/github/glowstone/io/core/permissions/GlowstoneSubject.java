@@ -1,5 +1,6 @@
 package com.github.glowstone.io.core.permissions;
 
+import com.github.glowstone.io.core.entities.SubjectEntity;
 import com.google.common.base.Preconditions;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.service.context.Context;
@@ -134,6 +135,16 @@ public class GlowstoneSubject implements Subject {
     @Override
     public Set<Context> getActiveContexts() {
         return this.activeContexts;
+    }
+
+    /**
+     * @return SubjectEntity prepared for saving
+     */
+    public SubjectEntity prepare() {
+        SubjectEntity subjectEntity = new SubjectEntity(this.identifier, this.name, this.type);
+        subjectEntity.setSubjectData(((GlowstoneSubjectData) this.subjectData).prepare());
+
+        return subjectEntity;
     }
 
 }

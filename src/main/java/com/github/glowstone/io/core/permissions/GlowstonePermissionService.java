@@ -1,6 +1,8 @@
 package com.github.glowstone.io.core.permissions;
 
-import com.github.glowstone.io.core.permissions.collections.*;
+import com.github.glowstone.io.core.permissions.collections.GroupSubjectCollection;
+import com.github.glowstone.io.core.permissions.collections.PrivilegedSubjectCollection;
+import com.github.glowstone.io.core.permissions.collections.UserSubjectCollection;
 import com.github.glowstone.io.core.permissions.subjects.DefaultSubject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -13,7 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GlowstonePermissionService implements PermissionService {
 
-    public static final String DEFAULT_GROUP = "default";
+    public static final String SUBJECT_DEFAULT = "default";
     public static final String SUBJECT_PRIVILEGED = "privileged";
     public static final GlowstonePermissionService instance = new GlowstonePermissionService();
 

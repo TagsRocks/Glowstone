@@ -2,18 +2,18 @@ package com.github.glowstone.io.core.persistence;
 
 import com.github.glowstone.io.core.entities.SubjectEntity;
 import com.github.glowstone.io.core.permissions.GlowstonePermissionService;
-import com.github.glowstone.io.core.persistence.interfaces.Store;
 import com.google.common.base.Preconditions;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.spongepowered.api.service.permission.PermissionService;
 
 import javax.persistence.Query;
 import java.util.List;
 import java.util.Optional;
 
-public class SubjectEntityStore extends EntityStore implements Store {
+public class SubjectEntityStore extends EntityStore<SubjectEntity> {
+
+    private static SubjectEntityStore instance;
 
     /**
      * SubjectEntityStore constructor
@@ -22,6 +22,14 @@ public class SubjectEntityStore extends EntityStore implements Store {
      */
     public SubjectEntityStore(SessionFactory sessionFactory) {
         super(sessionFactory);
+        instance = this;
+    }
+
+    /**
+     * @return the SubjectEntityStore instance
+     */
+    public static SubjectEntityStore getInstance() {
+        return instance;
     }
 
     /**
@@ -30,7 +38,7 @@ public class SubjectEntityStore extends EntityStore implements Store {
      * @param identifier String
      * @return the SubjectEntity matching that identifier
      */
-    public Optional<SubjectEntity> getSubjectEntity(String identifier) {
+    public Optional<SubjectEntity> get(String identifier) {
         Preconditions.checkNotNull(identifier);
 
         Session session = this.sessionFactory.openSession();
@@ -49,6 +57,15 @@ public class SubjectEntityStore extends EntityStore implements Store {
     }
 
     /**
+     * Get the default SubjectEntity
+     *
+     * @return Optional<SubjectEntity>
+     */
+    public Optional<SubjectEntity> getDefault() {
+        return this.get(GlowstonePermissionService.SUBJECT_DEFAULT);
+    }
+
+    /**
      * Get a SubjectEntity by identifier and type
      *
      * @param identifier String
@@ -64,28 +81,6 @@ public class SubjectEntityStore extends EntityStore implements Store {
         Query query = session.createNamedQuery("getSubjectByIdentifierAndType", SubjectEntity.class);
         query.setParameter("identifier", identifier);
         query.setParameter("type", type);
-
-        try {
-            SubjectEntity result = (SubjectEntity) query.getSingleResult();
-            session.close();
-            return Optional.of(result);
-        } catch (Exception e) {
-            session.close();
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * Get the SubjectEntity of the default group
-     *
-     * @return the SubjectEntity of the default group
-     */
-    public Optional<SubjectEntity> getDefaultGroup() {
-
-        Session session = this.sessionFactory.openSession();
-        session.beginTransaction();
-        Query query = session.createNamedQuery("getDefaultGroup", SubjectEntity.class);
-        query.setParameter("search", "default-group-%");
 
         try {
             SubjectEntity result = (SubjectEntity) query.getSingleResult();
@@ -135,56 +130,15 @@ public class SubjectEntityStore extends EntityStore implements Store {
     }
 
     /**
-     * Get all system SubjectEntities
-     *
-     * @return List of SubjectEntities
-     */
-    public List<SubjectEntity> getSystemSubjectEntities() {
-        return this.getSubjectEntitiesByType(PermissionService.SUBJECTS_SYSTEM);
-    }
-
-    /**
-     * Get all commandblock SubjectEntities
-     *
-     * @return List of SubjectEntities
-     */
-    public List<SubjectEntity> getCommandBlockSubjectEntities() {
-        return this.getSubjectEntitiesByType(PermissionService.SUBJECTS_COMMAND_BLOCK);
-    }
-
-    /**
-     * Get all role-template SubjectEntities
-     *
-     * @return List of SubjectEntities
-     */
-    public List<SubjectEntity> getRoleTemplateSubjectEntities() {
-        return this.getSubjectEntitiesByType(PermissionService.SUBJECTS_ROLE_TEMPLATE);
-    }
-
-    /**
      * Remove this entity
      *
      * @param entity Entity to remove
      */
     @Override
-    public void remove(Object entity) {
+    public void remove(SubjectEntity entity) {
         Preconditions.checkNotNull(entity);
-        Preconditions.checkArgument(
-                !(entity instanceof SubjectEntity && ((SubjectEntity) entity).getIdentifier().equals(GlowstonePermissionService.DEFAULT_GROUP))
-        );
-
-        Transaction transaction = null;
-        try (Session session = this.sessionFactory.openSession()) {
-            transaction = session.beginTransaction();
-            session.delete(entity);
-            session.flush();
-            transaction.commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (transaction != null) {
-                transaction.rollback();
-            }
-        }
+        Preconditions.checkArgument(!entity.getIdentifier().equals(GlowstonePermissionService.SUBJECT_DEFAULT));
+        super.remove(entity);
     }
 
 }

@@ -1,9 +1,14 @@
 package com.github.glowstone.io.core.entities;
 
+import com.google.common.collect.Maps;
+import org.spongepowered.api.service.context.Context;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Entity
 @org.hibernate.annotations.Entity(dynamicUpdate = true)
@@ -60,6 +65,24 @@ public class PermissionMapEntity implements Serializable {
      */
     public Set<PermissionEntity> getPermissions() {
         return this.permissions;
+    }
+
+    /**
+     * @return Map entry containing contexts and permissions
+     */
+    public Map.Entry<Set<Context>, Map<String, Boolean>> asEntry() {
+        Set<Context> contexts = new HashSet<>();
+        Map<String, Boolean> permissions = new ConcurrentHashMap<>();
+
+        this.getContexts().forEach(c -> {
+            contexts.add(c.asContext());
+        });
+
+        this.getPermissions().forEach(p -> {
+            permissions.put(p.asEntry().getKey(), p.asEntry().getValue());
+        });
+
+        return Maps.immutableEntry(contexts, permissions);
     }
 
 }

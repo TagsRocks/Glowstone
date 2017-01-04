@@ -7,7 +7,12 @@ import com.github.glowstone.io.core.http.ApiService;
 import com.github.glowstone.io.core.http.resources.PlayerResource;
 import com.github.glowstone.io.core.http.resources.SubjectResource;
 import com.github.glowstone.io.core.http.resources.WorldResource;
+import com.github.glowstone.io.core.listeners.PlayerListener;
 import com.github.glowstone.io.core.permissions.GlowstonePermissionService;
+import com.github.glowstone.io.core.permissions.GlowstoneSubject;
+import com.github.glowstone.io.core.permissions.collections.GroupSubjectCollection;
+import com.github.glowstone.io.core.permissions.collections.UserSubjectCollection;
+import com.github.glowstone.io.core.permissions.subjects.DefaultSubject;
 import com.github.glowstone.io.core.persistence.PersistenceService;
 import com.github.glowstone.io.core.persistence.SubjectEntityStore;
 import com.google.inject.Inject;
@@ -25,9 +30,12 @@ import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStoppedServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.permission.PermissionService;
+import org.spongepowered.api.service.permission.Subject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 
 @Plugin(id = Glowstone.ID, name = Glowstone.NAME, version = Glowstone.VERSION, description = Glowstone.DESCRIPTION)
 public class Glowstone {
@@ -100,6 +108,7 @@ public class Glowstone {
 
     @Listener
     public void onGameInitializationEvent(GameInitializationEvent event) {
+        Sponge.getEventManager().registerListeners(this, new PlayerListener());
         this.setupApiService();
     }
 
@@ -126,8 +135,6 @@ public class Glowstone {
 
     @Listener
     public void onGameStoppedServerEvent(GameStoppedServerEvent event) {
-        // TODO: save collections and default subject
-
         if (this.persistenceService != null && this.persistenceService.getSessionFactory().isOpen()) {
             this.persistenceService.getSessionFactory().close();
         }
@@ -170,9 +177,26 @@ public class Glowstone {
      * Setup the permission service
      */
     private void setupPermissionService() {
-        // TODO: load collections
+        List<SubjectEntity> users = this.subjectEntityStore.getUserSubjectEntities();
+        users.forEach(user -> UserSubjectCollection.instance.getSubjects().put(user.getIdentifier(), user.asSubject()));
+
+        List<SubjectEntity> groups = this.subjectEntityStore.getGroupSubjectEntities();
+        groups.forEach(group -> GroupSubjectCollection.instance.getSubjects().put(group.getIdentifier(), group.asSubject()));
+
+        Optional<SubjectEntity> optionalDefault = this.subjectEntityStore.getDefault();
+        if (optionalDefault.isPresent()) {
+            Subject defaultSubject = optionalDefault.get().asSubject();
+            DefaultSubject.instance.getSubjectData().getAllPermissions().putAll(defaultSubject.getSubjectData().getAllPermissions());
+            DefaultSubject.instance.getSubjectData().getAllParents().putAll(defaultSubject.getSubjectData().getAllParents());
+            DefaultSubject.instance.getSubjectData().getAllOptions().putAll(defaultSubject.getSubjectData().getAllOptions());
+        } else {
+            SubjectEntityStore.getInstance().save(DefaultSubject.instance.prepare());
+        }
 
         Sponge.getServiceManager().setProvider(this, PermissionService.class, GlowstonePermissionService.instance);
+
+        // TODO: remove this
+        UserSubjectCollection.instance.getAllSubjects().forEach(subject -> getLogger().info(subject.getIdentifier(), ((GlowstoneSubject) subject).getName()));
     }
 
     /**

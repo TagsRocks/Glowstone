@@ -1,5 +1,6 @@
 package com.github.glowstone.io.core.permissions;
 
+import com.github.glowstone.io.core.entities.*;
 import com.google.common.base.Preconditions;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.permission.Subject;
@@ -195,5 +196,39 @@ public class GlowstoneSubjectData implements SubjectData {
         this.globalOptions.clear();
         this.options.put(GLOBAL_CONTEXT, this.globalOptions);
         return true;
+    }
+
+    /**
+     * @return SubjectDataEntity prepared for saving
+     */
+    public SubjectDataEntity prepare() {
+        SubjectDataEntity subjectDataEntity = new SubjectDataEntity();
+
+        this.permissions.forEach((contexts, permissions) -> {
+            PermissionMapEntity map = new PermissionMapEntity();
+            contexts.forEach(context -> map.getContexts().add(new ContextEntity(context.getType(), context.getName())));
+            permissions.forEach((permission, value) -> map.getPermissions().add(new PermissionEntity(permission, value)));
+            subjectDataEntity.getAllPermissions().add(map);
+        });
+
+        this.parents.forEach((contexts, parents) -> {
+            SubjectMapEntity map = new SubjectMapEntity();
+            contexts.forEach(context -> map.getContexts().add(new ContextEntity(context.getType(), context.getName())));
+            parents.forEach(subject ->
+                    map.getSubjects().add(
+                            new SubjectEntity(subject.getIdentifier(), ((GlowstoneSubject) subject).getName(), ((GlowstoneSubject) subject).getType())
+                    )
+            );
+            subjectDataEntity.getAllParents().add(map);
+        });
+
+        this.options.forEach((contexts, options) -> {
+            OptionMapEntity map = new OptionMapEntity();
+            contexts.forEach(context -> map.getContexts().add(new ContextEntity(context.getType(), context.getName())));
+            options.forEach((key, value) -> map.getOptions().add(new OptionEntity(key, value)));
+            subjectDataEntity.getAllOptions().add(map);
+        });
+
+        return subjectDataEntity;
     }
 }

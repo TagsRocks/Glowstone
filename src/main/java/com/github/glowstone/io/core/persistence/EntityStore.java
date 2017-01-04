@@ -1,33 +1,23 @@
 package com.github.glowstone.io.core.persistence;
 
-import com.github.glowstone.io.core.persistence.interfaces.Store;
 import com.google.common.base.Preconditions;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-public class EntityStore implements Store {
+public abstract class EntityStore<E> {
 
-    protected static Store instance;
-    protected final SessionFactory sessionFactory;
+    final SessionFactory sessionFactory;
 
     /**
      * EntityStore constructor
      *
      * @param sessionFactory SessionFactory
      */
-    public EntityStore(SessionFactory sessionFactory) {
+    EntityStore(SessionFactory sessionFactory) {
         Preconditions.checkNotNull(sessionFactory);
 
-        instance = this;
         this.sessionFactory = sessionFactory;
-    }
-
-    /**
-     * @return get the Store instance
-     */
-    public static Store getInstance() {
-        return instance;
     }
 
     /**
@@ -35,7 +25,7 @@ public class EntityStore implements Store {
      *
      * @param entity Entity to save
      */
-    public void save(Object entity) {
+    public void save(E entity) {
         Preconditions.checkNotNull(entity);
 
         Transaction transaction = null;
@@ -57,7 +47,7 @@ public class EntityStore implements Store {
      *
      * @param entity Entity to remove
      */
-    public void remove(Object entity) {
+    public void remove(E entity) {
         Preconditions.checkNotNull(entity);
 
         Transaction transaction = null;

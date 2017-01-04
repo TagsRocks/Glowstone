@@ -1,9 +1,14 @@
 package com.github.glowstone.io.core.entities;
 
+import com.google.common.collect.Maps;
+import org.spongepowered.api.service.context.Context;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Entity
 @org.hibernate.annotations.Entity(dynamicUpdate = true)
@@ -60,6 +65,24 @@ public class OptionMapEntity implements Serializable {
      */
     public Set<OptionEntity> getOptions() {
         return this.options;
+    }
+
+    /**
+     * @return Map entry containing contexts and options
+     */
+    public Map.Entry<Set<Context>, Map<String, String>> asEntry() {
+        Set<Context> contexts = new HashSet<>();
+        Map<String, String> options = new ConcurrentHashMap<>();
+
+        this.getContexts().forEach(c -> {
+            contexts.add(c.asContext());
+        });
+
+        this.getOptions().forEach(o -> {
+            options.put(o.asEntry().getKey(), o.asEntry().getValue());
+        });
+
+        return Maps.immutableEntry(contexts, options);
     }
 
 }

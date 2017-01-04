@@ -1,9 +1,17 @@
 package com.github.glowstone.io.core.entities;
 
+import com.google.common.collect.Maps;
+import org.spongepowered.api.service.context.Context;
+import org.spongepowered.api.service.permission.Subject;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Entity
 @org.hibernate.annotations.Entity(dynamicUpdate = true)
@@ -60,6 +68,24 @@ public class SubjectMapEntity implements Serializable {
      */
     public Set<SubjectEntity> getSubjects() {
         return this.subjects;
+    }
+
+    /**
+     * @return Map entry containing contexts and subjects
+     */
+    public Map.Entry<Set<Context>, List<Subject>> asEntry() {
+        Set<Context> contexts = new HashSet<>();
+        List<Subject> subjects = new CopyOnWriteArrayList<>();
+
+        this.getContexts().forEach(c -> {
+            contexts.add(c.asContext());
+        });
+
+        this.getSubjects().forEach(s -> {
+            subjects.add(s.asSubject());
+        });
+
+        return Maps.immutableEntry(contexts, subjects);
     }
 
 }

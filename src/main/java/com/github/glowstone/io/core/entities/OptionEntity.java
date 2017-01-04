@@ -1,9 +1,11 @@
 package com.github.glowstone.io.core.entities;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Map;
 
 @Entity
 @org.hibernate.annotations.Entity(dynamicUpdate = true)
@@ -82,6 +84,13 @@ public class OptionEntity implements Serializable {
         Preconditions.checkNotNull(value);
 
         this.value = value;
+    }
+
+    /**
+     * @return Map entry
+     */
+    public Map.Entry<String, String> asEntry() {
+        return Maps.immutableEntry(this.key, this.value);
     }
 
 }

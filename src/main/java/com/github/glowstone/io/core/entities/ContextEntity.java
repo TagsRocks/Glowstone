@@ -1,6 +1,7 @@
 package com.github.glowstone.io.core.entities;
 
 import com.google.common.base.Preconditions;
+import org.spongepowered.api.service.context.Context;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -82,6 +83,13 @@ public class ContextEntity implements Serializable {
         Preconditions.checkNotNull(name);
 
         this.name = name;
+    }
+
+    /**
+     * @return Context
+     */
+    public Context asContext() {
+        return new Context(this.type, this.name);
     }
 
 }

@@ -2,7 +2,6 @@ package com.github.glowstone.io.core.persistence;
 
 import com.github.glowstone.io.core.configs.DefaultConfig;
 import com.github.glowstone.io.core.configs.interfaces.Config;
-import com.github.glowstone.io.core.entities.SubjectEntity;
 import com.google.common.base.Preconditions;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -18,7 +17,6 @@ public class PersistenceService {
     private static PersistenceService instance;
     private final Config config;
     private final Configuration configuration;
-
     private SessionFactory sessionFactory;
 
     /**

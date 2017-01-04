@@ -1,8 +1,14 @@
 package com.github.glowstone.io.core.entities;
 
+import com.github.glowstone.io.core.permissions.GlowstonePermissionService;
+import com.github.glowstone.io.core.permissions.GlowstoneSubject;
+import com.github.glowstone.io.core.permissions.collections.GroupSubjectCollection;
+import com.github.glowstone.io.core.permissions.collections.PrivilegedSubjectCollection;
+import com.github.glowstone.io.core.permissions.collections.UserSubjectCollection;
 import com.google.common.base.Preconditions;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.permission.PermissionService;
+import org.spongepowered.api.service.permission.Subject;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -10,8 +16,7 @@ import java.io.Serializable;
 @NamedQueries({
         @NamedQuery(name = "getSubjectByIdentifier", query = "from SubjectEntity s where s.identifier = :identifier"),
         @NamedQuery(name = "getSubjectsByType", query = "from SubjectEntity s where s.type = :type"),
-        @NamedQuery(name = "getSubjectByIdentifierAndType", query = "from SubjectEntity s where s.identifier = :identifier and s.type = :type"),
-        @NamedQuery(name = "getDefaultGroup", query = "from SubjectEntity s where s.identifier like :search")
+        @NamedQuery(name = "getSubjectByIdentifierAndType", query = "from SubjectEntity s where s.identifier = :identifier and s.type = :type")
 })
 @Entity
 @org.hibernate.annotations.Entity(dynamicUpdate = true)
@@ -145,6 +150,40 @@ public class SubjectEntity implements Serializable {
         Preconditions.checkNotNull(subjectData);
 
         this.subjectData = subjectData;
+    }
+
+    /**
+     * @return Subject
+     */
+    public Subject asSubject() {
+
+        Subject subject;
+        switch (this.type) {
+            case GlowstonePermissionService.SUBJECTS_USER:
+                subject = new GlowstoneSubject(this.identifier, this.name, this.type, UserSubjectCollection.instance);
+                break;
+
+            case GlowstonePermissionService.SUBJECTS_GROUP:
+                subject = new GlowstoneSubject(this.identifier, this.name, this.type, GroupSubjectCollection.instance);
+                break;
+
+            default:
+            case GlowstonePermissionService.SUBJECT_DEFAULT:
+                subject = new GlowstoneSubject(this.identifier, this.name, this.type, PrivilegedSubjectCollection.instance);
+                break;
+        }
+
+        this.getSubjectData().getAllPermissions().forEach(permissions ->
+                subject.getSubjectData().getAllPermissions().put(permissions.asEntry().getKey(), permissions.asEntry().getValue())
+        );
+        this.getSubjectData().getAllParents().forEach(parents ->
+                subject.getSubjectData().getAllParents().put(parents.asEntry().getKey(), parents.asEntry().getValue())
+        );
+        this.getSubjectData().getAllOptions().forEach(options ->
+                subject.getSubjectData().getAllOptions().put(options.asEntry().getKey(), options.asEntry().getValue())
+        );
+
+        return subject;
     }
 
 }
