@@ -140,9 +140,9 @@ public class GlowstoneSubject implements Subject {
     /**
      * @return SubjectEntity prepared for saving
      */
-    public SubjectEntity prepare() {
+    public SubjectEntity getSubjectEntity() {
         SubjectEntity subjectEntity = new SubjectEntity(this.identifier, this.name, this.type);
-        subjectEntity.setSubjectData(((GlowstoneSubjectData) this.subjectData).prepare());
+        subjectEntity.setSubjectData(((GlowstoneSubjectData) this.subjectData).getSubjectDataEntity());
 
         return subjectEntity;
     }

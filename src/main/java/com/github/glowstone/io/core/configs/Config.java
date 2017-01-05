@@ -1,6 +1,5 @@
 package com.github.glowstone.io.core.configs;
 
-import com.github.glowstone.io.core.configs.interfaces.Config;
 import com.google.common.base.Preconditions;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -9,28 +8,24 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import java.io.File;
 import java.io.IOException;
 
-public abstract class HoconConfig implements Config {
+public abstract class Config {
 
-    private static Config instance;
-    private final File directory;
     private final File file;
     private final ConfigurationLoader<CommentedConfigurationNode> loader;
     private final CommentedConfigurationNode config;
 
     /**
-     * HoconConfig constructor
+     * Config constructor
      *
      * @param directory File
      * @param filename  String
      * @throws IOException maybe thrown if there was an error loading the file, or creating the file for the first time.
      */
-    HoconConfig(File directory, String filename) throws IOException {
+    Config(File directory, String filename) throws IOException {
         Preconditions.checkNotNull(directory);
         Preconditions.checkNotNull(filename);
 
-        instance = this;
-        this.directory = directory;
-        this.file = new File(this.directory, filename);
+        this.file = new File(directory, filename);
         this.loader = HoconConfigurationLoader.builder().setFile(this.file).build();
 
         if (!this.file.isFile() && this.file.createNewFile()) {
@@ -40,24 +35,6 @@ public abstract class HoconConfig implements Config {
         } else {
             this.config = this.loader.load();
         }
-    }
-
-    /**
-     * Get this Config instance
-     *
-     * @return Config
-     */
-    public static Config getInstance() {
-        return instance;
-    }
-
-    /**
-     * Get the parent directory for this config file
-     *
-     * @return File
-     */
-    public File getDirectory() {
-        return this.directory;
     }
 
     /**
@@ -80,11 +57,13 @@ public abstract class HoconConfig implements Config {
 
     /**
      * Save this config
-     *
-     * @throws IOException will be thrown if there was an error saving the file
      */
-    public void save() throws IOException {
-        this.loader.save(get());
+    public void save() {
+        try {
+            this.loader.save(this.get());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

@@ -2,6 +2,7 @@ package com.github.glowstone.io.core.entities;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.google.gson.annotations.Expose;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -17,13 +18,16 @@ public class OptionEntity implements Serializable {
     private static final long serialVersionUID = -3167867177856489914L;
 
     @Id
+    @Expose(serialize = false, deserialize = false)
     @Column(name = "option_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long optionId;
 
+    @Expose
     @Column(name = "key", nullable = false)
     private String key;
 
+    @Expose
     @Column(name = "value", nullable = false)
     private String value;
 
@@ -89,7 +93,7 @@ public class OptionEntity implements Serializable {
     /**
      * @return Map entry
      */
-    public Map.Entry<String, String> asEntry() {
+    public Map.Entry<String, String> getEntry() {
         return Maps.immutableEntry(this.key, this.value);
     }
 

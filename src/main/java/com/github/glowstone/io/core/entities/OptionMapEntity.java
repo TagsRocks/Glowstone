@@ -1,6 +1,7 @@
 package com.github.glowstone.io.core.entities;
 
 import com.google.common.collect.Maps;
+import com.google.gson.annotations.Expose;
 import org.spongepowered.api.service.context.Context;
 
 import javax.persistence.*;
@@ -20,10 +21,12 @@ public class OptionMapEntity implements Serializable {
     private static final long serialVersionUID = -6635633183090314703L;
 
     @Id
+    @Expose(serialize = false, deserialize = false)
     @Column(name = "option_map_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long optionMapId;
 
+    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "option_map_context",
             joinColumns = {@JoinColumn(name = "option_map_id")},
@@ -31,6 +34,7 @@ public class OptionMapEntity implements Serializable {
     )
     private Set<ContextEntity> contexts;
 
+    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "option_map_option",
             joinColumns = {@JoinColumn(name = "option_map_id")},
@@ -70,16 +74,16 @@ public class OptionMapEntity implements Serializable {
     /**
      * @return Map entry containing contexts and options
      */
-    public Map.Entry<Set<Context>, Map<String, String>> asEntry() {
+    public Map.Entry<Set<Context>, Map<String, String>> getEntry() {
         Set<Context> contexts = new HashSet<>();
         Map<String, String> options = new ConcurrentHashMap<>();
 
         this.getContexts().forEach(c -> {
-            contexts.add(c.asContext());
+            contexts.add(c.getContext());
         });
 
         this.getOptions().forEach(o -> {
-            options.put(o.asEntry().getKey(), o.asEntry().getValue());
+            options.put(o.getEntry().getKey(), o.getEntry().getValue());
         });
 
         return Maps.immutableEntry(contexts, options);

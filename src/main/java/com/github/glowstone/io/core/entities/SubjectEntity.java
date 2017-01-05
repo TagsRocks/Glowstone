@@ -6,6 +6,7 @@ import com.github.glowstone.io.core.permissions.collections.GroupSubjectCollecti
 import com.github.glowstone.io.core.permissions.collections.PrivilegedSubjectCollection;
 import com.github.glowstone.io.core.permissions.collections.UserSubjectCollection;
 import com.google.common.base.Preconditions;
+import com.google.gson.annotations.Expose;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.permission.PermissionService;
 import org.spongepowered.api.service.permission.Subject;
@@ -14,6 +15,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @NamedQueries({
+        @NamedQuery(name = "getAllSubjects", query = "from SubjectEntity"),
         @NamedQuery(name = "getSubjectByIdentifier", query = "from SubjectEntity s where s.identifier = :identifier"),
         @NamedQuery(name = "getSubjectsByType", query = "from SubjectEntity s where s.type = :type"),
         @NamedQuery(name = "getSubjectByIdentifierAndType", query = "from SubjectEntity s where s.identifier = :identifier and s.type = :type")
@@ -28,19 +30,24 @@ public class SubjectEntity implements Serializable {
     private static final long serialVersionUID = -6640605136430939650L;
 
     @Id
+    @Expose(serialize = false, deserialize = false)
     @Column(name = "subject_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long subjectId;
 
+    @Expose
     @Column(name = "type", nullable = false)
     private String type;
 
+    @Expose
     @Column(name = "identifier", unique = true, nullable = false)
     private String identifier;
 
+    @Expose
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Expose
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "subject_data_id")
     private SubjectDataEntity subjectData;
@@ -155,7 +162,7 @@ public class SubjectEntity implements Serializable {
     /**
      * @return Subject
      */
-    public Subject asSubject() {
+    public Subject getSubject() {
 
         Subject subject;
         switch (this.type) {
@@ -174,13 +181,13 @@ public class SubjectEntity implements Serializable {
         }
 
         this.getSubjectData().getAllPermissions().forEach(permissions ->
-                subject.getSubjectData().getAllPermissions().put(permissions.asEntry().getKey(), permissions.asEntry().getValue())
+                subject.getSubjectData().getAllPermissions().put(permissions.getEntry().getKey(), permissions.getEntry().getValue())
         );
         this.getSubjectData().getAllParents().forEach(parents ->
-                subject.getSubjectData().getAllParents().put(parents.asEntry().getKey(), parents.asEntry().getValue())
+                subject.getSubjectData().getAllParents().put(parents.getEntry().getKey(), parents.getEntry().getValue())
         );
         this.getSubjectData().getAllOptions().forEach(options ->
-                subject.getSubjectData().getAllOptions().put(options.asEntry().getKey(), options.asEntry().getValue())
+                subject.getSubjectData().getAllOptions().put(options.getEntry().getKey(), options.getEntry().getValue())
         );
 
         return subject;

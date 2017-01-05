@@ -1,6 +1,7 @@
 package com.github.glowstone.io.core.entities;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.annotations.Expose;
 import org.spongepowered.api.service.context.Context;
 
 import javax.persistence.*;
@@ -16,13 +17,16 @@ public class ContextEntity implements Serializable {
     private static final long serialVersionUID = -7242996825633478337L;
 
     @Id
+    @Expose(serialize = false, deserialize = false)
     @Column(name = "context_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long contextId;
 
+    @Expose
     @Column(name = "type", nullable = false)
     private String type;
 
+    @Expose
     @Column(name = "name", nullable = false)
     private String name;
 
@@ -88,7 +92,7 @@ public class ContextEntity implements Serializable {
     /**
      * @return Context
      */
-    public Context asContext() {
+    public Context getContext() {
         return new Context(this.type, this.name);
     }
 

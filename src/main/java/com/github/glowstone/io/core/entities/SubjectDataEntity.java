@@ -1,5 +1,7 @@
 package com.github.glowstone.io.core.entities;
 
+import com.google.gson.annotations.Expose;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
@@ -15,10 +17,12 @@ public class SubjectDataEntity implements Serializable {
     private static final long serialVersionUID = -3317877691585905050L;
 
     @Id
+    @Expose(serialize = false, deserialize = false)
     @Column(name = "subject_data_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long subjectDataId;
 
+    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "subject_data_permissions",
             joinColumns = {@JoinColumn(name = "subject_data_id")},
@@ -26,6 +30,7 @@ public class SubjectDataEntity implements Serializable {
     )
     private Set<PermissionMapEntity> permissions;
 
+    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "subject_data_subjects",
             joinColumns = {@JoinColumn(name = "subject_data_id")},
@@ -33,6 +38,7 @@ public class SubjectDataEntity implements Serializable {
     )
     private Set<SubjectMapEntity> parents;
 
+    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "subject_data_options",
             joinColumns = {@JoinColumn(name = "subject_data_id")},

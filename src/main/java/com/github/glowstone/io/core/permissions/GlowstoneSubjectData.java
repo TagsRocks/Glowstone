@@ -16,12 +16,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GlowstoneSubjectData implements SubjectData {
 
-    protected final Subject subject;
-    protected final Map<String, Boolean> globalPermissions = new ConcurrentHashMap<>();
-    protected final Map<String, String> globalOptions = new ConcurrentHashMap<>();
-    protected final Map<Set<Context>, Map<String, Boolean>> permissions = new ConcurrentHashMap<>();
-    protected final Map<Set<Context>, List<Subject>> parents = new ConcurrentHashMap<>();
-    protected final Map<Set<Context>, Map<String, String>> options = new ConcurrentHashMap<>();
+    private final Subject subject;
+    private final Map<String, Boolean> globalPermissions = new ConcurrentHashMap<>();
+    private final Map<String, String> globalOptions = new ConcurrentHashMap<>();
+    private final Map<Set<Context>, Map<String, Boolean>> permissions = new ConcurrentHashMap<>();
+    private final Map<Set<Context>, List<Subject>> parents = new ConcurrentHashMap<>();
+    private final Map<Set<Context>, Map<String, String>> options = new ConcurrentHashMap<>();
 
     /**
      * GlowstoneSubjectData constructor
@@ -201,7 +201,7 @@ public class GlowstoneSubjectData implements SubjectData {
     /**
      * @return SubjectDataEntity prepared for saving
      */
-    public SubjectDataEntity prepare() {
+    public SubjectDataEntity getSubjectDataEntity() {
         SubjectDataEntity subjectDataEntity = new SubjectDataEntity();
 
         this.permissions.forEach((contexts, permissions) -> {

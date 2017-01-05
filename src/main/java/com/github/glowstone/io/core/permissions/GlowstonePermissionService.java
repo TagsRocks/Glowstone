@@ -17,8 +17,8 @@ public class GlowstonePermissionService implements PermissionService {
 
     public static final String SUBJECT_DEFAULT = "default";
     public static final String SUBJECT_PRIVILEGED = "privileged";
-    public static final GlowstonePermissionService instance = new GlowstonePermissionService();
 
+    public static final GlowstonePermissionService instance = new GlowstonePermissionService();
     private final ConcurrentHashMap<String, SubjectCollection> collections = new ConcurrentHashMap<>();
     private final CopyOnWriteArrayList<ContextCalculator> contextCalculators = new CopyOnWriteArrayList<>();
 

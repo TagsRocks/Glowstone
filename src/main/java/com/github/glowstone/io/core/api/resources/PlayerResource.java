@@ -1,13 +1,10 @@
-package com.github.glowstone.io.core.http.resources;
+package com.github.glowstone.io.core.api.resources;
 
 import com.google.gson.Gson;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.service.user.UserStorageService;
-import org.spongepowered.api.world.Location;
-import org.spongepowered.api.world.World;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

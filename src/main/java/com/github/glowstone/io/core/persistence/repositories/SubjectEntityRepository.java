@@ -1,4 +1,4 @@
-package com.github.glowstone.io.core.persistence;
+package com.github.glowstone.io.core.persistence.repositories;
 
 import com.github.glowstone.io.core.entities.SubjectEntity;
 import com.github.glowstone.io.core.permissions.GlowstonePermissionService;
@@ -11,24 +11,24 @@ import javax.persistence.Query;
 import java.util.List;
 import java.util.Optional;
 
-public class SubjectEntityStore extends EntityStore<SubjectEntity> {
+public class SubjectEntityRepository extends EntityRepository<SubjectEntity> {
 
-    private static SubjectEntityStore instance;
+    private static SubjectEntityRepository instance;
 
     /**
-     * SubjectEntityStore constructor
+     * SubjectEntityRepository constructor
      *
      * @param sessionFactory SessionFactory
      */
-    public SubjectEntityStore(SessionFactory sessionFactory) {
+    public SubjectEntityRepository(SessionFactory sessionFactory) {
         super(sessionFactory);
         instance = this;
     }
 
     /**
-     * @return the SubjectEntityStore instance
+     * @return the SubjectEntityRepository instance
      */
-    public static SubjectEntityStore getInstance() {
+    public static SubjectEntityRepository getInstance() {
         return instance;
     }
 
@@ -127,6 +127,21 @@ public class SubjectEntityStore extends EntityStore<SubjectEntity> {
      */
     public List<SubjectEntity> getGroupSubjectEntities() {
         return this.getSubjectEntitiesByType(PermissionService.SUBJECTS_GROUP);
+    }
+
+    /**
+     * Get all SubjectEntities
+     *
+     * @return List of SubjectEntities
+     */
+    public List<SubjectEntity> getAllSubjectEntities() {
+        Session session = this.sessionFactory.openSession();
+        session.beginTransaction();
+
+        Query query = session.createNamedQuery("getAllSubjects", SubjectEntity.class);
+        List<SubjectEntity> results = query.getResultList();
+        session.close();
+        return results;
     }
 
     /**

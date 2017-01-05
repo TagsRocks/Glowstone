@@ -1,6 +1,7 @@
 package com.github.glowstone.io.core.entities;
 
 import com.google.common.collect.Maps;
+import com.google.gson.annotations.Expose;
 import org.spongepowered.api.service.context.Context;
 
 import javax.persistence.*;
@@ -20,10 +21,12 @@ public class PermissionMapEntity implements Serializable {
     private static final long serialVersionUID = 5231783380740555286L;
 
     @Id
+    @Expose(serialize = false, deserialize = false)
     @Column(name = "permission_map_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long permissionMapId;
 
+    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "permission_map_context",
             joinColumns = {@JoinColumn(name = "permission_map_id")},
@@ -31,6 +34,7 @@ public class PermissionMapEntity implements Serializable {
     )
     private Set<ContextEntity> contexts;
 
+    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "permission_map_permission",
             joinColumns = {@JoinColumn(name = "permission_map_id")},
@@ -70,16 +74,16 @@ public class PermissionMapEntity implements Serializable {
     /**
      * @return Map entry containing contexts and permissions
      */
-    public Map.Entry<Set<Context>, Map<String, Boolean>> asEntry() {
+    public Map.Entry<Set<Context>, Map<String, Boolean>> getEntry() {
         Set<Context> contexts = new HashSet<>();
         Map<String, Boolean> permissions = new ConcurrentHashMap<>();
 
         this.getContexts().forEach(c -> {
-            contexts.add(c.asContext());
+            contexts.add(c.getContext());
         });
 
         this.getPermissions().forEach(p -> {
-            permissions.put(p.asEntry().getKey(), p.asEntry().getValue());
+            permissions.put(p.getEntry().getKey(), p.getEntry().getValue());
         });
 
         return Maps.immutableEntry(contexts, permissions);

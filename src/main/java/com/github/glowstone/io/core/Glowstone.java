@@ -1,26 +1,23 @@
 package com.github.glowstone.io.core;
 
-import com.github.glowstone.io.core.configs.DefaultConfig;
-import com.github.glowstone.io.core.configs.interfaces.Config;
+import com.github.glowstone.io.core.api.ApiService;
+import com.github.glowstone.io.core.api.resources.PlayerResource;
+import com.github.glowstone.io.core.api.resources.SubjectResource;
+import com.github.glowstone.io.core.api.resources.WorldResource;
+import com.github.glowstone.io.core.configs.GlowstoneConfig;
 import com.github.glowstone.io.core.entities.*;
-import com.github.glowstone.io.core.http.ApiService;
-import com.github.glowstone.io.core.http.resources.PlayerResource;
-import com.github.glowstone.io.core.http.resources.SubjectResource;
-import com.github.glowstone.io.core.http.resources.WorldResource;
 import com.github.glowstone.io.core.listeners.PlayerListener;
 import com.github.glowstone.io.core.permissions.GlowstonePermissionService;
-import com.github.glowstone.io.core.permissions.GlowstoneSubject;
 import com.github.glowstone.io.core.permissions.collections.GroupSubjectCollection;
 import com.github.glowstone.io.core.permissions.collections.UserSubjectCollection;
 import com.github.glowstone.io.core.permissions.subjects.DefaultSubject;
 import com.github.glowstone.io.core.persistence.PersistenceService;
-import com.github.glowstone.io.core.persistence.SubjectEntityStore;
+import com.github.glowstone.io.core.persistence.repositories.SubjectEntityRepository;
 import com.google.inject.Inject;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongepowered.api.Game;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
@@ -46,13 +43,11 @@ public class Glowstone {
     public static final String DESCRIPTION = "A Minecraft apiService plugin that runs on top of Sponge for Glowstone.io integration";
 
     private static Glowstone instance;
-    private Config config;
+
+    private GlowstoneConfig config;
     private ApiService apiService;
     private PersistenceService persistenceService;
-    private SubjectEntityStore subjectEntityStore;
-
-    @Inject
-    private Game game;
+    private SubjectEntityRepository subjectEntityRepository;
 
     @Inject
     private Logger logger;
@@ -85,16 +80,6 @@ public class Glowstone {
         instance = this;
         this.logger = LoggerFactory.getLogger(Glowstone.NAME);
         this.getLogger().info(String.format("Starting up %s v%s", Glowstone.NAME, Glowstone.VERSION));
-
-        // Create configuration directory
-        if (!this.configDir.isDirectory()) {
-            if (this.configDir.mkdirs()) {
-                this.getLogger().info("configs directory successfully created");
-            } else {
-                this.getLogger().error("Unable to create plugin directory, please file permissions.");
-                this.game.getServer().shutdown();
-            }
-        }
 
         // Load configs
         this.setupConfigs();
@@ -148,8 +133,14 @@ public class Glowstone {
      * Setup the configs
      */
     private void setupConfigs() {
+
+        if (!this.configDir.isDirectory() && !this.configDir.mkdirs()) {
+            this.getLogger().error(String.format("Unable to create %s config directory, please check file permissions.", Glowstone.NAME));
+            Sponge.getServer().shutdown();
+        }
+
         try {
-            this.config = new DefaultConfig(this.configDir, Glowstone.NAME + ".conf");
+            this.config = new GlowstoneConfig(this.configDir, "glowstone.conf");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -169,44 +160,53 @@ public class Glowstone {
         configuration.addAnnotatedClass(SubjectEntity.class);
         configuration.addAnnotatedClass(SubjectMapEntity.class);
 
-        this.persistenceService = new PersistenceService(this.config, configuration);
-        this.subjectEntityStore = new SubjectEntityStore(this.persistenceService.getSessionFactory());
+        String type = this.config.get().getNode(GlowstoneConfig.DATABASE_SETTINGS, "type").getString("");
+        String url = this.config.get().getNode(GlowstoneConfig.DATABASE_SETTINGS, "url").getString("");
+        String database = this.config.get().getNode(GlowstoneConfig.DATABASE_SETTINGS, "database").getString("");
+        String username = this.config.get().getNode(GlowstoneConfig.DATABASE_SETTINGS, "username").getString("");
+        String password = this.config.get().getNode(GlowstoneConfig.DATABASE_SETTINGS, "password").getString("");
+
+        try {
+            this.persistenceService = new PersistenceService(configuration, type, url, database, username, password);
+        } catch (Exception e) {
+            this.getLogger().error(String.format("Please check you database settings in the %s config.", Glowstone.NAME));
+            Sponge.getServer().shutdown();
+        }
+
+        this.subjectEntityRepository = new SubjectEntityRepository(this.persistenceService.getSessionFactory());
     }
 
     /**
      * Setup the permission service
      */
     private void setupPermissionService() {
-        List<SubjectEntity> users = this.subjectEntityStore.getUserSubjectEntities();
-        users.forEach(user -> UserSubjectCollection.instance.getSubjects().put(user.getIdentifier(), user.asSubject()));
+        List<SubjectEntity> users = this.subjectEntityRepository.getUserSubjectEntities();
+        users.forEach(user -> UserSubjectCollection.instance.getSubjects().put(user.getIdentifier(), user.getSubject()));
 
-        List<SubjectEntity> groups = this.subjectEntityStore.getGroupSubjectEntities();
-        groups.forEach(group -> GroupSubjectCollection.instance.getSubjects().put(group.getIdentifier(), group.asSubject()));
+        List<SubjectEntity> groups = this.subjectEntityRepository.getGroupSubjectEntities();
+        groups.forEach(group -> GroupSubjectCollection.instance.getSubjects().put(group.getIdentifier(), group.getSubject()));
 
-        Optional<SubjectEntity> optionalDefault = this.subjectEntityStore.getDefault();
+        Optional<SubjectEntity> optionalDefault = this.subjectEntityRepository.getDefault();
         if (optionalDefault.isPresent()) {
-            Subject defaultSubject = optionalDefault.get().asSubject();
+            Subject defaultSubject = optionalDefault.get().getSubject();
             DefaultSubject.instance.getSubjectData().getAllPermissions().putAll(defaultSubject.getSubjectData().getAllPermissions());
             DefaultSubject.instance.getSubjectData().getAllParents().putAll(defaultSubject.getSubjectData().getAllParents());
             DefaultSubject.instance.getSubjectData().getAllOptions().putAll(defaultSubject.getSubjectData().getAllOptions());
         } else {
-            SubjectEntityStore.getInstance().save(DefaultSubject.instance.prepare());
+            SubjectEntityRepository.getInstance().save(DefaultSubject.instance.getSubjectEntity());
         }
 
         Sponge.getServiceManager().setProvider(this, PermissionService.class, GlowstonePermissionService.instance);
-
-        // TODO: remove this
-        UserSubjectCollection.instance.getAllSubjects().forEach(subject -> getLogger().info(subject.getIdentifier(), ((GlowstoneSubject) subject).getName()));
     }
 
     /**
      * Setup the api service
      */
     private void setupApiService() {
-        int port = this.config.get().getNode(DefaultConfig.API_SETTINGS, "port").getInt(8766);
+        int port = this.config.get().getNode(GlowstoneConfig.API_SETTINGS, "port").getInt(8766);
         ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(new PlayerResource());
-        resourceConfig.register(new SubjectResource(this.subjectEntityStore));
+        resourceConfig.register(new SubjectResource(this.subjectEntityRepository));
         resourceConfig.register(new WorldResource());
 
         this.apiService = new ApiService(resourceConfig, port);

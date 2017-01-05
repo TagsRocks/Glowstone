@@ -1,7 +1,5 @@
 package com.github.glowstone.io.core.persistence;
 
-import com.github.glowstone.io.core.configs.DefaultConfig;
-import com.github.glowstone.io.core.configs.interfaces.Config;
 import com.google.common.base.Preconditions;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -15,22 +13,34 @@ import java.util.Properties;
 public class PersistenceService {
 
     private static PersistenceService instance;
-    private final Config config;
     private final Configuration configuration;
+    private final String type;
+    private final String url;
+    private final String database;
+    private final String username;
+    private final String password;
+
     private SessionFactory sessionFactory;
 
     /**
      * PersistenceService constructor
-     *
-     * @param config Config
      */
-    public PersistenceService(Config config, Configuration configuration) {
-        Preconditions.checkNotNull(config);
+    public PersistenceService(Configuration configuration, String type, String url, String database, String username, String password)
+            throws IOException, ClassNotFoundException {
         Preconditions.checkNotNull(configuration);
+        Preconditions.checkArgument(!type.isEmpty());
+        Preconditions.checkArgument(!url.isEmpty());
+        Preconditions.checkArgument(!database.isEmpty());
+        Preconditions.checkArgument(!username.isEmpty());
+        Preconditions.checkArgument(!password.isEmpty());
 
         instance = this;
-        this.config = config;
         this.configuration = configuration;
+        this.type = type;
+        this.url = url;
+        this.database = database;
+        this.username = username;
+        this.password = password;
         this.initialize();
     }
 
@@ -51,40 +61,29 @@ public class PersistenceService {
     /**
      * Initialize the database connection
      */
-    private void initialize() {
-
-        String type = this.config.get().getNode(DefaultConfig.DATABASE_SETTINGS, "type").getString("");
-        String url = this.config.get().getNode(DefaultConfig.DATABASE_SETTINGS, "url").getString("");
-        String database = this.config.get().getNode(DefaultConfig.DATABASE_SETTINGS, "database").getString("");
-        String username = this.config.get().getNode(DefaultConfig.DATABASE_SETTINGS, "username").getString("");
-        String password = this.config.get().getNode(DefaultConfig.DATABASE_SETTINGS, "password").getString("");
-
-        Preconditions.checkArgument(!type.isEmpty());
-        Preconditions.checkArgument(!url.isEmpty());
-        Preconditions.checkArgument(!database.isEmpty());
-        Preconditions.checkArgument(!username.isEmpty());
-        Preconditions.checkArgument(!password.isEmpty());
-
-        // Dynamically load the property file based on type
+    private void initialize() throws IOException, ClassNotFoundException {
         Properties properties = new Properties();
-        try (InputStream resource = getClass().getClassLoader().getResourceAsStream(type.toLowerCase() + ".properties")) {
-            properties.load(resource);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
+        // Dynamically load the database properties based on type
+        InputStream databaseProperties = getClass().getClassLoader().getResourceAsStream(this.type.toLowerCase() + ".properties");
+        properties.load(databaseProperties);
+        databaseProperties.close();
+
+        // Load HikariCP properties
+        InputStream connectionPoolProperties = getClass().getClassLoader().getResourceAsStream("hikari.properties");
+        properties.load(connectionPoolProperties);
+        connectionPoolProperties.close();
+
+        // Updated database connection properties
         properties.setProperty("hibernate.connection.url", url + database);
         properties.setProperty("hibernate.connection.username", username);
         properties.setProperty("hibernate.connection.password", password);
-
-        try {
-            Class.forName(properties.getProperty("hibernate.connection.driver_class"));
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
         this.configuration.addProperties(properties);
 
+        // Load the driver class for this database type
+        Class.forName(properties.getProperty("hibernate.connection.driver_class"));
+
+        // Create the session factory
         ServiceRegistry registry = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build();
         this.sessionFactory = configuration.buildSessionFactory(registry);
     }

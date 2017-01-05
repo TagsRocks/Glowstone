@@ -1,4 +1,4 @@
-package com.github.glowstone.io.core.http;
+package com.github.glowstone.io.core.api;
 
 import com.google.common.base.Preconditions;
 import org.eclipse.jetty.server.Server;

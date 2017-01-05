@@ -1,6 +1,7 @@
 package com.github.glowstone.io.core.entities;
 
 import com.google.common.collect.Maps;
+import com.google.gson.annotations.Expose;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.permission.Subject;
 
@@ -10,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Entity
@@ -23,10 +23,12 @@ public class SubjectMapEntity implements Serializable {
     private static final long serialVersionUID = -8880506885089088236L;
 
     @Id
+    @Expose(serialize = false, deserialize = false)
     @Column(name = "subject_map_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long subjectMapId;
 
+    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "subject_map_context",
             joinColumns = {@JoinColumn(name = "subject_map_id")},
@@ -34,6 +36,7 @@ public class SubjectMapEntity implements Serializable {
     )
     private Set<ContextEntity> contexts;
 
+    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "subject_map_subject",
             joinColumns = {@JoinColumn(name = "subject_map_id")},
@@ -73,16 +76,16 @@ public class SubjectMapEntity implements Serializable {
     /**
      * @return Map entry containing contexts and subjects
      */
-    public Map.Entry<Set<Context>, List<Subject>> asEntry() {
+    public Map.Entry<Set<Context>, List<Subject>> getEntry() {
         Set<Context> contexts = new HashSet<>();
         List<Subject> subjects = new CopyOnWriteArrayList<>();
 
         this.getContexts().forEach(c -> {
-            contexts.add(c.asContext());
+            contexts.add(c.getContext());
         });
 
         this.getSubjects().forEach(s -> {
-            subjects.add(s.asSubject());
+            subjects.add(s.getSubject());
         });
 
         return Maps.immutableEntry(contexts, subjects);

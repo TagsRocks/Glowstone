@@ -1,4 +1,4 @@
-package com.github.glowstone.io.core.http.resources;
+package com.github.glowstone.io.core.api.resources;
 
 import com.github.glowstone.io.core.objects.WorldObject;
 import com.google.common.base.Preconditions;

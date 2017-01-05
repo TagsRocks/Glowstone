@@ -14,8 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class GlowstoneSubjectCollection implements SubjectCollection {
 
-    protected final String identifier;
-    protected final Map<String, Subject> subjects = new ConcurrentHashMap<>();
+    private final String identifier;
+    private final Map<String, Subject> subjects = new ConcurrentHashMap<>();
 
     /**
      * GlowstoneSubjectCollection constructor

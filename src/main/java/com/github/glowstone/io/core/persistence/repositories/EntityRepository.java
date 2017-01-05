@@ -1,20 +1,20 @@
-package com.github.glowstone.io.core.persistence;
+package com.github.glowstone.io.core.persistence.repositories;
 
 import com.google.common.base.Preconditions;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-public abstract class EntityStore<E> {
+public abstract class EntityRepository<E> {
 
     final SessionFactory sessionFactory;
 
     /**
-     * EntityStore constructor
+     * EntityRepository constructor
      *
      * @param sessionFactory SessionFactory
      */
-    EntityStore(SessionFactory sessionFactory) {
+    EntityRepository(SessionFactory sessionFactory) {
         Preconditions.checkNotNull(sessionFactory);
 
         this.sessionFactory = sessionFactory;

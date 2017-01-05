@@ -2,6 +2,7 @@ package com.github.glowstone.io.core.entities;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.google.gson.annotations.Expose;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -17,13 +18,16 @@ public class PermissionEntity implements Serializable {
     private static final long serialVersionUID = 7547442109758306839L;
 
     @Id
+    @Expose(serialize = false, deserialize = false)
     @Column(name = "permission_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long permissionId;
 
+    @Expose
     @Column(name = "permission", nullable = false)
     private String permission;
 
+    @Expose
     @Column(name = "value", nullable = false)
     private boolean value;
 
@@ -89,7 +93,7 @@ public class PermissionEntity implements Serializable {
     /**
      * @return Map entry
      */
-    public Map.Entry<String, Boolean> asEntry() {
+    public Map.Entry<String, Boolean> getEntry() {
         return Maps.immutableEntry(this.permission, this.value);
     }
 
