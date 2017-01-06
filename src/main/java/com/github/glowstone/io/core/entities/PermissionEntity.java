@@ -2,32 +2,34 @@ package com.github.glowstone.io.core.entities;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.google.gson.annotations.Expose;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Map;
 
 @Entity
-@org.hibernate.annotations.Entity(dynamicUpdate = true)
+@DynamicUpdate
 @Table(name = "permissions", uniqueConstraints = {
         @UniqueConstraint(columnNames = "permission_id"), @UniqueConstraint(columnNames = {"permission", "value"})
+})
+@NamedQueries({
+        @NamedQuery(name = "getAllPermissions", query = "from PermissionEntity"),
+        @NamedQuery(name = "getPermission", query = "from PermissionEntity p where p.id = :id"),
+        @NamedQuery(name = "getPermissionByPermissionAndValue", query = "from PermissionEntity p where p.permission = :permission and p.value = :value")
 })
 public class PermissionEntity implements Serializable {
 
     private static final long serialVersionUID = 7547442109758306839L;
 
     @Id
-    @Expose(serialize = false, deserialize = false)
     @Column(name = "permission_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long permissionId;
+    private long id;
 
-    @Expose
     @Column(name = "permission", nullable = false)
     private String permission;
 
-    @Expose
     @Column(name = "value", nullable = false)
     private boolean value;
 
@@ -54,8 +56,8 @@ public class PermissionEntity implements Serializable {
     /**
      * @return long
      */
-    public long getPermissionId() {
-        return this.permissionId;
+    public long getId() {
+        return this.id;
     }
 
     /**

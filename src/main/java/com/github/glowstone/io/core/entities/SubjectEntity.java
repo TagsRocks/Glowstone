@@ -6,7 +6,7 @@ import com.github.glowstone.io.core.permissions.collections.GroupSubjectCollecti
 import com.github.glowstone.io.core.permissions.collections.PrivilegedSubjectCollection;
 import com.github.glowstone.io.core.permissions.collections.UserSubjectCollection;
 import com.google.common.base.Preconditions;
-import com.google.gson.annotations.Expose;
+import org.hibernate.annotations.DynamicUpdate;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.permission.PermissionService;
 import org.spongepowered.api.service.permission.Subject;
@@ -14,40 +14,35 @@ import org.spongepowered.api.service.permission.Subject;
 import javax.persistence.*;
 import java.io.Serializable;
 
+@Entity
+@DynamicUpdate
+@Table(name = "subjects", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "subject_id"), @UniqueConstraint(columnNames = "identifier")
+})
 @NamedQueries({
         @NamedQuery(name = "getAllSubjects", query = "from SubjectEntity"),
         @NamedQuery(name = "getSubjectByIdentifier", query = "from SubjectEntity s where s.identifier = :identifier"),
         @NamedQuery(name = "getSubjectsByType", query = "from SubjectEntity s where s.type = :type"),
         @NamedQuery(name = "getSubjectByIdentifierAndType", query = "from SubjectEntity s where s.identifier = :identifier and s.type = :type")
 })
-@Entity
-@org.hibernate.annotations.Entity(dynamicUpdate = true)
-@Table(name = "subjects", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "subject_id"), @UniqueConstraint(columnNames = "identifier")
-})
 public class SubjectEntity implements Serializable {
 
     private static final long serialVersionUID = -6640605136430939650L;
 
     @Id
-    @Expose(serialize = false, deserialize = false)
     @Column(name = "subject_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long subjectId;
+    private long id;
 
-    @Expose
     @Column(name = "type", nullable = false)
     private String type;
 
-    @Expose
     @Column(name = "identifier", unique = true, nullable = false)
     private String identifier;
 
-    @Expose
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Expose
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "subject_data_id")
     private SubjectDataEntity subjectData;
@@ -91,8 +86,8 @@ public class SubjectEntity implements Serializable {
     /**
      * @return long
      */
-    public long getSubjectId() {
-        return this.subjectId;
+    public long getId() {
+        return this.id;
     }
 
     /**

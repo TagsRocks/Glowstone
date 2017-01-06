@@ -1,6 +1,6 @@
 package com.github.glowstone.io.core.entities;
 
-import com.google.gson.annotations.Expose;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@org.hibernate.annotations.Entity(dynamicUpdate = true)
+@DynamicUpdate
 @Table(name = "subject_data", uniqueConstraints = {
         @UniqueConstraint(columnNames = "subject_data_id")
 })
@@ -17,12 +17,10 @@ public class SubjectDataEntity implements Serializable {
     private static final long serialVersionUID = -3317877691585905050L;
 
     @Id
-    @Expose(serialize = false, deserialize = false)
     @Column(name = "subject_data_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long subjectDataId;
+    private long id;
 
-    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "subject_data_permissions",
             joinColumns = {@JoinColumn(name = "subject_data_id")},
@@ -30,7 +28,6 @@ public class SubjectDataEntity implements Serializable {
     )
     private Set<PermissionMapEntity> permissions;
 
-    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "subject_data_subjects",
             joinColumns = {@JoinColumn(name = "subject_data_id")},
@@ -38,7 +35,6 @@ public class SubjectDataEntity implements Serializable {
     )
     private Set<SubjectMapEntity> parents;
 
-    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "subject_data_options",
             joinColumns = {@JoinColumn(name = "subject_data_id")},
@@ -58,8 +54,8 @@ public class SubjectDataEntity implements Serializable {
     /**
      * @return long
      */
-    public long getSubjectDataId() {
-        return this.subjectDataId;
+    public long getId() {
+        return this.id;
     }
 
     /**

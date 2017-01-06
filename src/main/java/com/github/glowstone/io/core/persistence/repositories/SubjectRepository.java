@@ -11,24 +11,24 @@ import javax.persistence.Query;
 import java.util.List;
 import java.util.Optional;
 
-public class SubjectEntityRepository extends EntityRepository<SubjectEntity> {
+public class SubjectRepository extends EntityRepository<SubjectEntity> {
 
-    private static SubjectEntityRepository instance;
+    private static SubjectRepository instance;
 
     /**
-     * SubjectEntityRepository constructor
+     * SubjectRepository constructor
      *
      * @param sessionFactory SessionFactory
      */
-    public SubjectEntityRepository(SessionFactory sessionFactory) {
+    public SubjectRepository(SessionFactory sessionFactory) {
         super(sessionFactory);
         instance = this;
     }
 
     /**
-     * @return the SubjectEntityRepository instance
+     * @return the SubjectRepository instance
      */
-    public static SubjectEntityRepository getInstance() {
+    public static SubjectRepository getInstance() {
         return instance;
     }
 
@@ -148,12 +148,13 @@ public class SubjectEntityRepository extends EntityRepository<SubjectEntity> {
      * Remove this entity
      *
      * @param entity Entity to remove
+     * @return result of the removal
      */
     @Override
-    public void remove(SubjectEntity entity) {
+    public boolean remove(SubjectEntity entity) {
         Preconditions.checkNotNull(entity);
         Preconditions.checkArgument(!entity.getIdentifier().equals(GlowstonePermissionService.SUBJECT_DEFAULT));
-        super.remove(entity);
+        return super.remove(entity);
     }
 
 }

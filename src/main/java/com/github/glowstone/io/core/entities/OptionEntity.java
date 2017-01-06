@@ -2,32 +2,34 @@ package com.github.glowstone.io.core.entities;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.google.gson.annotations.Expose;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Map;
 
 @Entity
-@org.hibernate.annotations.Entity(dynamicUpdate = true)
+@DynamicUpdate
 @Table(name = "options", uniqueConstraints = {
         @UniqueConstraint(columnNames = "option_id"), @UniqueConstraint(columnNames = {"key", "value"})
+})
+@NamedQueries({
+        @NamedQuery(name = "getAllOptions", query = "from OptionEntity"),
+        @NamedQuery(name = "getOption", query = "from OptionEntity o where o.id = :id"),
+        @NamedQuery(name = "getOptionByKeyAndValue", query = "from OptionEntity o where o.key = :key and o.value = :value")
 })
 public class OptionEntity implements Serializable {
 
     private static final long serialVersionUID = -3167867177856489914L;
 
     @Id
-    @Expose(serialize = false, deserialize = false)
     @Column(name = "option_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long optionId;
+    private long id;
 
-    @Expose
     @Column(name = "key", nullable = false)
     private String key;
 
-    @Expose
     @Column(name = "value", nullable = false)
     private String value;
 
@@ -54,8 +56,8 @@ public class OptionEntity implements Serializable {
     /**
      * @return long
      */
-    public long getOptionId() {
-        return this.optionId;
+    public long getId() {
+        return this.id;
     }
 
     /**

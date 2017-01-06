@@ -1,7 +1,7 @@
 package com.github.glowstone.io.core.api.resources;
 
 import com.github.glowstone.io.core.entities.SubjectEntity;
-import com.github.glowstone.io.core.persistence.repositories.SubjectEntityRepository;
+import com.github.glowstone.io.core.persistence.repositories.SubjectRepository;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -19,24 +19,24 @@ import java.util.Optional;
 @Produces(MediaType.APPLICATION_JSON)
 public class SubjectResource {
 
-    private final SubjectEntityRepository subjectEntityRepository;
+    private final SubjectRepository subjectRepository;
 
     /**
      * SubjectResource constructor
      *
-     * @param subjectEntityStore SubjectEntityRepository
+     * @param subjectRepository SubjectRepository
      */
-    public SubjectResource(SubjectEntityRepository subjectEntityStore) {
-        Preconditions.checkNotNull(subjectEntityStore);
+    public SubjectResource(SubjectRepository subjectRepository) {
+        Preconditions.checkNotNull(subjectRepository);
 
-        this.subjectEntityRepository = subjectEntityStore;
+        this.subjectRepository = subjectRepository;
     }
 
     @GET
     public String getSubjects() {
 
-        Gson data = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        List<SubjectEntity> subjects = this.subjectEntityRepository.getAllSubjectEntities();
+        Gson data = new Gson();
+        List<SubjectEntity> subjects = this.subjectRepository.getAllSubjectEntities();
 
         return data.toJson(subjects);
     }
@@ -45,8 +45,8 @@ public class SubjectResource {
     @Path("/users")
     public String getUserSubjects() {
 
-        Gson data = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        List<SubjectEntity> subjects = this.subjectEntityRepository.getUserSubjectEntities();
+        Gson data = new Gson();
+        List<SubjectEntity> subjects = this.subjectRepository.getUserSubjectEntities();
 
         return data.toJson(subjects);
     }
@@ -56,8 +56,8 @@ public class SubjectResource {
     public String getUserSubject(@PathParam("userId") String userId) {
         Preconditions.checkNotNull(userId);
 
-        Gson data = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        Optional<SubjectEntity> optional = this.subjectEntityRepository.getSubjectEntityByIdentifierAndType(userId, PermissionService.SUBJECTS_USER);
+        Gson data = new Gson();
+        Optional<SubjectEntity> optional = this.subjectRepository.getSubjectEntityByIdentifierAndType(userId, PermissionService.SUBJECTS_USER);
 
         return optional.isPresent() ? data.toJson(optional.get()) : data.toJson(String.format("Subject '%s' not found", userId));
     }
@@ -66,8 +66,8 @@ public class SubjectResource {
     @Path("/groups")
     public String getGroupSubjects() {
 
-        Gson data = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        List<SubjectEntity> subjects = this.subjectEntityRepository.getGroupSubjectEntities();
+        Gson data = new Gson();
+        List<SubjectEntity> subjects = this.subjectRepository.getGroupSubjectEntities();
 
         return data.toJson(subjects);
     }
@@ -77,8 +77,8 @@ public class SubjectResource {
     public String getGroupSubject(@PathParam("groupId") String groupId) {
         Preconditions.checkNotNull(groupId);
 
-        Gson data = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        Optional<SubjectEntity> optional = this.subjectEntityRepository.getSubjectEntityByIdentifierAndType(groupId, PermissionService.SUBJECTS_GROUP);
+        Gson data = new Gson();
+        Optional<SubjectEntity> optional = this.subjectRepository.getSubjectEntityByIdentifierAndType(groupId, PermissionService.SUBJECTS_GROUP);
 
         return optional.isPresent() ? data.toJson(optional.get()) : data.toJson(String.format("Subject '%s' not found", groupId));
     }

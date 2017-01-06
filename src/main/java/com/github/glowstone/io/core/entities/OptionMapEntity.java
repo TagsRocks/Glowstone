@@ -1,7 +1,7 @@
 package com.github.glowstone.io.core.entities;
 
 import com.google.common.collect.Maps;
-import com.google.gson.annotations.Expose;
+import org.hibernate.annotations.DynamicUpdate;
 import org.spongepowered.api.service.context.Context;
 
 import javax.persistence.*;
@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Entity
-@org.hibernate.annotations.Entity(dynamicUpdate = true)
+@DynamicUpdate
 @Table(name = "option_map", uniqueConstraints = {
         @UniqueConstraint(columnNames = "option_map_id")
 })
@@ -21,12 +21,10 @@ public class OptionMapEntity implements Serializable {
     private static final long serialVersionUID = -6635633183090314703L;
 
     @Id
-    @Expose(serialize = false, deserialize = false)
     @Column(name = "option_map_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long optionMapId;
+    private long id;
 
-    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "option_map_context",
             joinColumns = {@JoinColumn(name = "option_map_id")},
@@ -34,7 +32,6 @@ public class OptionMapEntity implements Serializable {
     )
     private Set<ContextEntity> contexts;
 
-    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "option_map_option",
             joinColumns = {@JoinColumn(name = "option_map_id")},
@@ -53,8 +50,8 @@ public class OptionMapEntity implements Serializable {
     /**
      * @return long
      */
-    public long getOptionMapId() {
-        return this.optionMapId;
+    public long getId() {
+        return this.id;
     }
 
     /**

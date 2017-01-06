@@ -5,7 +5,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-public abstract class EntityRepository<E> {
+public abstract class EntityRepository<Entity> {
 
     final SessionFactory sessionFactory;
 
@@ -24,8 +24,9 @@ public abstract class EntityRepository<E> {
      * Save this entity
      *
      * @param entity Entity to save
+     * @return the saved Entity
      */
-    public void save(E entity) {
+    public Entity save(Entity entity) {
         Preconditions.checkNotNull(entity);
 
         Transaction transaction = null;
@@ -34,11 +35,13 @@ public abstract class EntityRepository<E> {
             session.saveOrUpdate(entity);
             session.flush();
             transaction.commit();
+            return entity;
         } catch (Exception e) {
             e.printStackTrace();
             if (transaction != null) {
                 transaction.rollback();
             }
+            return null;
         }
     }
 
@@ -46,8 +49,9 @@ public abstract class EntityRepository<E> {
      * Remove this entity
      *
      * @param entity Entity to remove
+     * @return result of the removal
      */
-    public void remove(E entity) {
+    public boolean remove(Entity entity) {
         Preconditions.checkNotNull(entity);
 
         Transaction transaction = null;
@@ -56,11 +60,13 @@ public abstract class EntityRepository<E> {
             session.delete(entity);
             session.flush();
             transaction.commit();
+            return true;
         } catch (Exception e) {
-            e.printStackTrace();
             if (transaction != null) {
                 transaction.rollback();
             }
+            e.printStackTrace();
+            return false;
         }
     }
 

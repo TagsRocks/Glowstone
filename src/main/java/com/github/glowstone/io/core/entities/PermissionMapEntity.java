@@ -1,7 +1,7 @@
 package com.github.glowstone.io.core.entities;
 
 import com.google.common.collect.Maps;
-import com.google.gson.annotations.Expose;
+import org.hibernate.annotations.DynamicUpdate;
 import org.spongepowered.api.service.context.Context;
 
 import javax.persistence.*;
@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Entity
-@org.hibernate.annotations.Entity(dynamicUpdate = true)
+@DynamicUpdate
 @Table(name = "permission_map", uniqueConstraints = {
         @UniqueConstraint(columnNames = "permission_map_id")
 })
@@ -21,12 +21,10 @@ public class PermissionMapEntity implements Serializable {
     private static final long serialVersionUID = 5231783380740555286L;
 
     @Id
-    @Expose(serialize = false, deserialize = false)
     @Column(name = "permission_map_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long permissionMapId;
+    private long id;
 
-    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "permission_map_context",
             joinColumns = {@JoinColumn(name = "permission_map_id")},
@@ -34,7 +32,6 @@ public class PermissionMapEntity implements Serializable {
     )
     private Set<ContextEntity> contexts;
 
-    @Expose
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "permission_map_permission",
             joinColumns = {@JoinColumn(name = "permission_map_id")},
@@ -53,8 +50,8 @@ public class PermissionMapEntity implements Serializable {
     /**
      * @return long
      */
-    public long getPermissionMapId() {
-        return this.permissionMapId;
+    public long getId() {
+        return this.id;
     }
 
     /**

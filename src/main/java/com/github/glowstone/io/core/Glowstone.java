@@ -1,6 +1,7 @@
 package com.github.glowstone.io.core;
 
 import com.github.glowstone.io.core.api.ApiService;
+import com.github.glowstone.io.core.api.resources.PermissionResource;
 import com.github.glowstone.io.core.api.resources.PlayerResource;
 import com.github.glowstone.io.core.api.resources.SubjectResource;
 import com.github.glowstone.io.core.api.resources.WorldResource;
@@ -12,7 +13,8 @@ import com.github.glowstone.io.core.permissions.collections.GroupSubjectCollecti
 import com.github.glowstone.io.core.permissions.collections.UserSubjectCollection;
 import com.github.glowstone.io.core.permissions.subjects.DefaultSubject;
 import com.github.glowstone.io.core.persistence.PersistenceService;
-import com.github.glowstone.io.core.persistence.repositories.SubjectEntityRepository;
+import com.github.glowstone.io.core.persistence.repositories.PermissionRepository;
+import com.github.glowstone.io.core.persistence.repositories.SubjectRepository;
 import com.google.inject.Inject;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.hibernate.cfg.Configuration;
@@ -47,7 +49,9 @@ public class Glowstone {
     private GlowstoneConfig config;
     private ApiService apiService;
     private PersistenceService persistenceService;
-    private SubjectEntityRepository subjectEntityRepository;
+
+    private SubjectRepository subjectRepository;
+    private PermissionRepository permissionRepository;
 
     @Inject
     private Logger logger;
@@ -173,27 +177,28 @@ public class Glowstone {
             Sponge.getServer().shutdown();
         }
 
-        this.subjectEntityRepository = new SubjectEntityRepository(this.persistenceService.getSessionFactory());
+        this.subjectRepository = new SubjectRepository(this.persistenceService.getSessionFactory());
+        this.permissionRepository = new PermissionRepository(this.persistenceService.getSessionFactory());
     }
 
     /**
      * Setup the permission service
      */
     private void setupPermissionService() {
-        List<SubjectEntity> users = this.subjectEntityRepository.getUserSubjectEntities();
+        List<SubjectEntity> users = this.subjectRepository.getUserSubjectEntities();
         users.forEach(user -> UserSubjectCollection.instance.getSubjects().put(user.getIdentifier(), user.getSubject()));
 
-        List<SubjectEntity> groups = this.subjectEntityRepository.getGroupSubjectEntities();
+        List<SubjectEntity> groups = this.subjectRepository.getGroupSubjectEntities();
         groups.forEach(group -> GroupSubjectCollection.instance.getSubjects().put(group.getIdentifier(), group.getSubject()));
 
-        Optional<SubjectEntity> optionalDefault = this.subjectEntityRepository.getDefault();
+        Optional<SubjectEntity> optionalDefault = this.subjectRepository.getDefault();
         if (optionalDefault.isPresent()) {
             Subject defaultSubject = optionalDefault.get().getSubject();
             DefaultSubject.instance.getSubjectData().getAllPermissions().putAll(defaultSubject.getSubjectData().getAllPermissions());
             DefaultSubject.instance.getSubjectData().getAllParents().putAll(defaultSubject.getSubjectData().getAllParents());
             DefaultSubject.instance.getSubjectData().getAllOptions().putAll(defaultSubject.getSubjectData().getAllOptions());
         } else {
-            SubjectEntityRepository.getInstance().save(DefaultSubject.instance.getSubjectEntity());
+            SubjectRepository.getInstance().save(DefaultSubject.instance.getSubjectEntity());
         }
 
         Sponge.getServiceManager().setProvider(this, PermissionService.class, GlowstonePermissionService.instance);
@@ -206,7 +211,8 @@ public class Glowstone {
         int port = this.config.get().getNode(GlowstoneConfig.API_SETTINGS, "port").getInt(8766);
         ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(new PlayerResource());
-        resourceConfig.register(new SubjectResource(this.subjectEntityRepository));
+        resourceConfig.register(new SubjectResource(this.subjectRepository));
+        resourceConfig.register(new PermissionResource(this.permissionRepository));
         resourceConfig.register(new WorldResource());
 
         this.apiService = new ApiService(resourceConfig, port);
