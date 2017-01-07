@@ -84,7 +84,7 @@ public class OptionRepository extends EntityRepository<OptionEntity> {
      *
      * @return List of OptionEntities
      */
-    public List<OptionEntity> getAllContexts() {
+    public List<OptionEntity> getAllOptions() {
         Session session = this.sessionFactory.openSession();
         session.beginTransaction();
 

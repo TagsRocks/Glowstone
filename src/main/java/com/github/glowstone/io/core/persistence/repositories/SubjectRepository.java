@@ -33,6 +33,30 @@ public class SubjectRepository extends EntityRepository<SubjectEntity> {
     }
 
     /**
+     * Get a SubjectEntity by id
+     *
+     * @param id long
+     * @return the SubjectEntity by id
+     */
+    public Optional<SubjectEntity> get(long id) {
+        Preconditions.checkNotNull(id);
+
+        Session session = this.sessionFactory.openSession();
+        session.beginTransaction();
+        Query query = session.createNamedQuery("getSubject", SubjectEntity.class);
+        query.setParameter("id", id);
+
+        try {
+            SubjectEntity result = (SubjectEntity) query.getSingleResult();
+            session.close();
+            return Optional.of(result);
+        } catch (Exception e) {
+            session.close();
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Get a SubjectEntity by identifier
      *
      * @param identifier String
@@ -72,7 +96,7 @@ public class SubjectRepository extends EntityRepository<SubjectEntity> {
      * @param type       String
      * @return the SubjectEntity matching that identifier and type
      */
-    public Optional<SubjectEntity> getSubjectEntityByIdentifierAndType(String identifier, String type) {
+    public Optional<SubjectEntity> getSubjectByIdentifierAndType(String identifier, String type) {
         Preconditions.checkNotNull(identifier);
         Preconditions.checkNotNull(type);
 
@@ -98,7 +122,7 @@ public class SubjectRepository extends EntityRepository<SubjectEntity> {
      * @param type String
      * @return List of SubjectEntities
      */
-    private List<SubjectEntity> getSubjectEntitiesByType(String type) {
+    private List<SubjectEntity> getSubjectsByType(String type) {
         Preconditions.checkNotNull(type);
 
         Session session = this.sessionFactory.openSession();
@@ -116,8 +140,8 @@ public class SubjectRepository extends EntityRepository<SubjectEntity> {
      *
      * @return List of SubjectEntities
      */
-    public List<SubjectEntity> getUserSubjectEntities() {
-        return this.getSubjectEntitiesByType(PermissionService.SUBJECTS_USER);
+    public List<SubjectEntity> getUserSubjects() {
+        return this.getSubjectsByType(PermissionService.SUBJECTS_USER);
     }
 
     /**
@@ -125,8 +149,8 @@ public class SubjectRepository extends EntityRepository<SubjectEntity> {
      *
      * @return List of SubjectEntities
      */
-    public List<SubjectEntity> getGroupSubjectEntities() {
-        return this.getSubjectEntitiesByType(PermissionService.SUBJECTS_GROUP);
+    public List<SubjectEntity> getGroupSubjects() {
+        return this.getSubjectsByType(PermissionService.SUBJECTS_GROUP);
     }
 
     /**
@@ -134,7 +158,7 @@ public class SubjectRepository extends EntityRepository<SubjectEntity> {
      *
      * @return List of SubjectEntities
      */
-    public List<SubjectEntity> getAllSubjectEntities() {
+    public List<SubjectEntity> getAllSubjects() {
         Session session = this.sessionFactory.openSession();
         session.beginTransaction();
 

@@ -21,8 +21,9 @@ import java.io.Serializable;
 })
 @NamedQueries({
         @NamedQuery(name = "getAllSubjects", query = "from SubjectEntity"),
-        @NamedQuery(name = "getSubjectByIdentifier", query = "from SubjectEntity s where s.identifier = :identifier"),
         @NamedQuery(name = "getSubjectsByType", query = "from SubjectEntity s where s.type = :type"),
+        @NamedQuery(name = "getSubject", query = "from SubjectEntity s where s.id = :id"),
+        @NamedQuery(name = "getSubjectByIdentifier", query = "from SubjectEntity s where s.identifier = :identifier"),
         @NamedQuery(name = "getSubjectByIdentifierAndType", query = "from SubjectEntity s where s.identifier = :identifier and s.type = :type")
 })
 public class SubjectEntity implements Serializable {
@@ -88,6 +89,13 @@ public class SubjectEntity implements Serializable {
      */
     public long getId() {
         return this.id;
+    }
+
+    /**
+     * @param id long
+     */
+    public void setId(long id) {
+        this.id = id;
     }
 
     /**

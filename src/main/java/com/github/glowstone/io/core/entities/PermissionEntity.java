@@ -61,6 +61,13 @@ public class PermissionEntity implements Serializable {
     }
 
     /**
+     * @param id long
+     */
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    /**
      * @return String
      */
     public String getPermission() {

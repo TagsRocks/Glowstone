@@ -59,6 +59,13 @@ public class SubjectDataEntity implements Serializable {
     }
 
     /**
+     * @param id long
+     */
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    /**
      * @return Set of PermissionMapEntity
      */
     public Set<PermissionMapEntity> getAllPermissions() {

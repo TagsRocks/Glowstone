@@ -36,7 +36,7 @@ public class PermissionResource extends Resource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response addPermission(PermissionEntity permission) {
         if (permission.getPermission() == null) {
-            String details = "The permission field is missing";
+            String details = "The `permission` field is missing";
             return error(Response.Status.BAD_REQUEST, new ErrorObject(Resource.MISSING_PARAMETER, details));
         }
 
@@ -44,20 +44,49 @@ public class PermissionResource extends Resource {
         if (optional.isPresent()) {
             return success(optional.get());
         } else {
-            return success(this.permissionRepository.save(permission));
+            return created(this.permissionRepository.save(permission));
         }
     }
 
     @GET
-    @Path("/{id}")
-    public Response getPermission(@PathParam("id") long id) {
+    @Path("/{permissionId}")
+    public Response getPermission(@PathParam("permissionId") long id) {
         Optional<PermissionEntity> optional = this.permissionRepository.get(id);
         if (optional.isPresent()) {
             return success(optional.get());
         } else {
-            String details = String.format("Permission not found with id: %s", id);
-            return error(Response.Status.NOT_FOUND, new ErrorObject(Resource.ENTITY_NOT_FOUND, details));
+            return notFound("Permission", id);
         }
+    }
+
+    @PUT
+    @Path("/{permissionId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response updatePermission(@PathParam("permissionId") long id, PermissionEntity permission) {
+        Optional<PermissionEntity> optional = this.permissionRepository.get(id);
+        if (optional.isPresent()) {
+            PermissionEntity updated = optional.get();
+            if (permission.getPermission() != null) {
+                updated.setPermission(permission.getPermission());
+            }
+            updated.setValue(permission.getValue());
+            updated = this.permissionRepository.save(updated);
+            return success(updated);
+        }
+
+        return notFound("Permission", id);
+    }
+
+    @DELETE
+    @Path("/{permissionId}")
+    public Response deletePermission(@PathParam("permissionId") long id) {
+        Optional<PermissionEntity> optional = this.permissionRepository.get(id);
+        if (optional.isPresent()) {
+            this.permissionRepository.remove(optional.get());
+            return deleted();
+        }
+
+        return notFound("Permission", id);
     }
 
 }

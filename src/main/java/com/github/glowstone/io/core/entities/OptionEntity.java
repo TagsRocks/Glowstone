@@ -61,6 +61,13 @@ public class OptionEntity implements Serializable {
     }
 
     /**
+     * @param id long
+     */
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    /**
      * @return String
      */
     public String getKey() {
@@ -86,7 +93,7 @@ public class OptionEntity implements Serializable {
     /**
      * @param value String
      */
-    public void setName(String value) {
+    public void setValue(String value) {
         Preconditions.checkNotNull(value);
 
         this.value = value;

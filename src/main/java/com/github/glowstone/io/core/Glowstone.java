@@ -1,10 +1,7 @@
 package com.github.glowstone.io.core;
 
 import com.github.glowstone.io.core.api.ApiService;
-import com.github.glowstone.io.core.api.resources.PermissionResource;
-import com.github.glowstone.io.core.api.resources.PlayerResource;
-import com.github.glowstone.io.core.api.resources.SubjectResource;
-import com.github.glowstone.io.core.api.resources.WorldResource;
+import com.github.glowstone.io.core.api.resources.*;
 import com.github.glowstone.io.core.configs.GlowstoneConfig;
 import com.github.glowstone.io.core.entities.*;
 import com.github.glowstone.io.core.listeners.PlayerListener;
@@ -13,6 +10,8 @@ import com.github.glowstone.io.core.permissions.collections.GroupSubjectCollecti
 import com.github.glowstone.io.core.permissions.collections.UserSubjectCollection;
 import com.github.glowstone.io.core.permissions.subjects.DefaultSubject;
 import com.github.glowstone.io.core.persistence.PersistenceService;
+import com.github.glowstone.io.core.persistence.repositories.ContextRepository;
+import com.github.glowstone.io.core.persistence.repositories.OptionRepository;
 import com.github.glowstone.io.core.persistence.repositories.PermissionRepository;
 import com.github.glowstone.io.core.persistence.repositories.SubjectRepository;
 import com.google.inject.Inject;
@@ -52,6 +51,8 @@ public class Glowstone {
 
     private SubjectRepository subjectRepository;
     private PermissionRepository permissionRepository;
+    private OptionRepository optionRepository;
+    private ContextRepository contextRepository;
 
     @Inject
     private Logger logger;
@@ -179,16 +180,18 @@ public class Glowstone {
 
         this.subjectRepository = new SubjectRepository(this.persistenceService.getSessionFactory());
         this.permissionRepository = new PermissionRepository(this.persistenceService.getSessionFactory());
+        this.optionRepository = new OptionRepository(this.persistenceService.getSessionFactory());
+        this.contextRepository = new ContextRepository(this.persistenceService.getSessionFactory());
     }
 
     /**
      * Setup the permission service
      */
     private void setupPermissionService() {
-        List<SubjectEntity> users = this.subjectRepository.getUserSubjectEntities();
+        List<SubjectEntity> users = this.subjectRepository.getUserSubjects();
         users.forEach(user -> UserSubjectCollection.instance.getSubjects().put(user.getIdentifier(), user.getSubject()));
 
-        List<SubjectEntity> groups = this.subjectRepository.getGroupSubjectEntities();
+        List<SubjectEntity> groups = this.subjectRepository.getGroupSubjects();
         groups.forEach(group -> GroupSubjectCollection.instance.getSubjects().put(group.getIdentifier(), group.getSubject()));
 
         Optional<SubjectEntity> optionalDefault = this.subjectRepository.getDefault();
@@ -210,10 +213,10 @@ public class Glowstone {
     private void setupApiService() {
         int port = this.config.get().getNode(GlowstoneConfig.API_SETTINGS, "port").getInt(8766);
         ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(new PlayerResource());
         resourceConfig.register(new SubjectResource(this.subjectRepository));
         resourceConfig.register(new PermissionResource(this.permissionRepository));
-        resourceConfig.register(new WorldResource());
+        resourceConfig.register(new OptionResource(this.optionRepository));
+        resourceConfig.register(new ContextResource(this.contextRepository));
 
         this.apiService = new ApiService(resourceConfig, port);
     }
